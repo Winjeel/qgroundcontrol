@@ -31,7 +31,7 @@ QGC_LOGGING_CATEGORY(TerrainQueryLog, "TerrainQueryLog")
 QGC_LOGGING_CATEGORY(TerrainQueryVerboseLog, "TerrainQueryVerboseLog")
 
 Q_GLOBAL_STATIC(TerrainAtCoordinateBatchManager, _TerrainAtCoordinateBatchManager)
-Q_GLOBAL_STATIC(TerrainTileManager, _terrainTileManager)
+Q_GLOBAL_STATIC(TerrainTileManager, s_terrainTileManager)
 
 static const auto kMapType = UrlFactory::kCopernicusElevationProviderKey;
 
@@ -290,7 +290,7 @@ void TerrainOfflineAirMapQuery::requestCoordinateHeights(const QList<QGeoCoordin
         return;
     }
 
-    _terrainTileManager->addCoordinateQuery(this, coordinates);
+    TerrainTileManager::instance()->addCoordinateQuery(this, coordinates);
 }
 
 void TerrainOfflineAirMapQuery::requestPathHeights(const QGeoCoordinate& fromCoord, const QGeoCoordinate& toCoord)
@@ -300,7 +300,7 @@ void TerrainOfflineAirMapQuery::requestPathHeights(const QGeoCoordinate& fromCoo
         return;
     }
 
-    _terrainTileManager->addPathQuery(this, fromCoord, toCoord);
+    TerrainTileManager::instance()->addPathQuery(this, fromCoord, toCoord);
 }
 
 void TerrainOfflineAirMapQuery::requestCarpetHeights(const QGeoCoordinate& swCoord, const QGeoCoordinate& neCoord, bool statsOnly)
@@ -330,6 +330,11 @@ void TerrainOfflineAirMapQuery::_signalPathHeights(bool success, double distance
 void TerrainOfflineAirMapQuery::_signalCarpetHeights(bool success, double minHeight, double maxHeight, const QList<QList<double>>& carpet)
 {
     emit carpetHeightsReceived(success, minHeight, maxHeight, carpet);
+}
+
+TerrainTileManager* TerrainTileManager::instance(void)
+{
+    return s_terrainTileManager();
 }
 
 TerrainTileManager::TerrainTileManager(void)
@@ -723,7 +728,7 @@ void TerrainAtCoordinateQuery::requestData(const QList<QGeoCoordinate>& coordina
 
 bool TerrainAtCoordinateQuery::getAltitudesForCoordinates(const QList<QGeoCoordinate>& coordinates, QList<double>& altitudes, bool& error)
 {
-    return _terrainTileManager->getAltitudesForCoordinates(coordinates, altitudes, error);
+    return TerrainTileManager::instance()->getAltitudesForCoordinates(coordinates, altitudes, error);
 }
 
 void TerrainAtCoordinateQuery::_signalTerrainData(bool success, QList<double>& heights)
