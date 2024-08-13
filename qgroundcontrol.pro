@@ -435,6 +435,7 @@ HEADERS += \
     src/QmlControls/CustomActionManager.h \
     src/QmlControls/QmlUnitsConversion.h \
     src/Terrain/TerrainAirmapQuery.h \
+    src/Terrain/TerrainQueryInterface.h \
     src/Terrain/TerrainQueryTest.h \
     src/Terrain/TerrainTileManager.h \
     src/Vehicle/VehicleEscStatusFactGroup.h \

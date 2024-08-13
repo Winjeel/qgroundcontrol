@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "TerrainAirmapQuery.h" // for TerrainQueryInterface
+#include "TerrainQueryInterface.h"
 
 #include <QObject>
 #include <QGeoCoordinate>
