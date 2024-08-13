@@ -47,6 +47,7 @@ Rectangle {
     property real   _margins:                   ScreenTools.defaultFontPixelWidth
     property var    _planViewSettings:          QGroundControl.settingsManager.planViewSettings
     property var    _flyViewSettings:           QGroundControl.settingsManager.flyViewSettings
+    property var    _flightMapSettings:         QGroundControl.settingsManager.flightMapSettings
     property var    _videoSettings:             QGroundControl.settingsManager.videoSettings
     property string _videoSource:               _videoSettings.videoSource.rawValue
     property bool   _isGst:                     QGroundControl.videoManager.isGStreamer
@@ -509,6 +510,79 @@ Rectangle {
                         }
                     }
 
+                    Item { width: 1; height: _margins; visible: mapTerrainSectionLabel.visible }
+                    QGCLabel {
+                        id:         mapTerrainSectionLabel
+                        text:       qsTr("Maps and Terrain")
+                    }
+                    Rectangle {
+                        Layout.preferredHeight: mapTerrainGrid.height + (_margins * 2)
+                        Layout.preferredWidth:  mapTerrainGrid.width + (_margins * 2)
+                        color:                  qgcPal.windowShade
+                        visible:                mapTerrainSectionLabel.visible
+                        Layout.fillWidth:       true
+
+                        GridLayout {
+                            id:                         mapTerrainGrid
+                            anchors.topMargin:          _margins
+                            anchors.top:                parent.top
+                            Layout.fillWidth:           false
+                            anchors.horizontalCenter:   parent.horizontalCenter
+                            columns:                    2
+
+                            QGCLabel {
+                                text:       qsTr("Map Tile Provider")
+                                width:      _labelWidth
+                            }
+                            QGCComboBox {
+                                id:             mapCombo
+                                model:          QGroundControl.mapEngineManager.mapProviderList
+                                Layout.preferredWidth:  _comboFieldWidth
+                                onActivated: {
+                                    _mapProvider = textAt(index)
+                                    _flightMapSettings.mapProvider.value = textAt(index)
+                                    _flightMapSettings.mapType.value = QGroundControl.mapEngineManager.mapTypeList(textAt(index))[0]
+                                }
+                                Component.onCompleted: {
+                                    var index = mapCombo.find(_mapProvider)
+                                    if(index < 0) index = 0
+                                    mapCombo.currentIndex = index
+                                }
+                            }
+
+                            QGCLabel {
+                                text:       qsTr("Map Tile Type")
+                                width:      _labelWidth
+                            }
+                            QGCComboBox {
+                                id:             mapTypeCombo
+                                model:          QGroundControl.mapEngineManager.mapTypeList(_mapProvider)
+                                Layout.preferredWidth:  _comboFieldWidth
+                                onActivated: {
+                                    _mapType = textAt(index)
+                                    _flightMapSettings.mapType.value = textAt(index)
+                                }
+                                Component.onCompleted: {
+                                    var index = mapTypeCombo.find(_mapType)
+                                    if(index < 0) index = 0
+                                    mapTypeCombo.currentIndex = index
+                                }
+                            }
+
+                            QGCLabel {
+                                id:         elevationProviderLabel
+                                text:       qsTr("Elevation Provider")
+                                visible:    _flightMapSettings.elevationProvider.visible
+                                Layout.preferredWidth:  _labelWidth
+                            }
+                            FactComboBox {
+                                fact:                   _flightMapSettings.elevationProvider
+                                visible:                elevationProviderLabel.visible
+                                Layout.preferredWidth:  _comboFieldWidth
+                            }
+                        }
+                    }
+
                     Item { width: 1; height: _margins; visible: miscSectionLabel.visible }
                     QGCLabel {
                         id:         miscSectionLabel
@@ -555,45 +629,6 @@ Rectangle {
                                     fact:                   QGroundControl.settingsManager.appSettings.indoorPalette
                                     indexModel:             false
                                     visible:                QGroundControl.settingsManager.appSettings.indoorPalette.visible
-                                }
-
-                                QGCLabel {
-                                    text:       qsTr("Map Provider")
-                                    width:      _labelWidth
-                                }
-
-                                QGCComboBox {
-                                    id:             mapCombo
-                                    model:          QGroundControl.mapEngineManager.mapProviderList
-                                    Layout.preferredWidth:  _comboFieldWidth
-                                    onActivated: {
-                                        _mapProvider = textAt(index)
-                                        QGroundControl.settingsManager.flightMapSettings.mapProvider.value=textAt(index)
-                                        QGroundControl.settingsManager.flightMapSettings.mapType.value=QGroundControl.mapEngineManager.mapTypeList(textAt(index))[0]
-                                    }
-                                    Component.onCompleted: {
-                                        var index = mapCombo.find(_mapProvider)
-                                        if(index < 0) index = 0
-                                        mapCombo.currentIndex = index
-                                    }
-                                }
-                                QGCLabel {
-                                    text:       qsTr("Map Type")
-                                    width:      _labelWidth
-                                }
-                                QGCComboBox {
-                                    id:             mapTypeCombo
-                                    model:          QGroundControl.mapEngineManager.mapTypeList(_mapProvider)
-                                    Layout.preferredWidth:  _comboFieldWidth
-                                    onActivated: {
-                                        _mapType = textAt(index)
-                                        QGroundControl.settingsManager.flightMapSettings.mapType.value=textAt(index)
-                                    }
-                                    Component.onCompleted: {
-                                        var index = mapTypeCombo.find(_mapType)
-                                        if(index < 0) index = 0
-                                        mapTypeCombo.currentIndex = index
-                                    }
                                 }
 
                                 QGCLabel {
