@@ -67,9 +67,4 @@ public:
     void requestCoordinateHeights(const QList<QGeoCoordinate>& coordinates) final;
     void requestPathHeights(const QGeoCoordinate& fromCoord, const QGeoCoordinate& toCoord) final;
     void requestCarpetHeights(const QGeoCoordinate& swCoord, const QGeoCoordinate& neCoord, bool statsOnly) final;
-
-    // Internal methods
-    void _signalCoordinateHeights(bool success, QList<double> heights);
-    void _signalPathHeights(bool success, double distanceBetween, double finalDistanceBetween, const QList<double>& heights);
-    void _signalCarpetHeights(bool success, double minHeight, double maxHeight, const QList<QList<double>>& carpet);
 };

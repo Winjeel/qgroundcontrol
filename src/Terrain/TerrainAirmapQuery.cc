@@ -304,18 +304,3 @@ void TerrainOfflineAirMapQuery::requestCarpetHeights(const QGeoCoordinate& swCoo
     Q_UNUSED(statsOnly);
     qWarning() << "Carpet queries are currently not supported from offline air map data";
 }
-
-void TerrainOfflineAirMapQuery::_signalCoordinateHeights(bool success, QList<double> heights)
-{
-    emit coordinateHeightsReceived(success, heights);
-}
-
-void TerrainOfflineAirMapQuery::_signalPathHeights(bool success, double distanceBetween, double finalDistanceBetween, const QList<double>& heights)
-{
-    emit pathHeightsReceived(success, distanceBetween, finalDistanceBetween, heights);
-}
-
-void TerrainOfflineAirMapQuery::_signalCarpetHeights(bool success, double minHeight, double maxHeight, const QList<QList<double>>& carpet)
-{
-    emit carpetHeightsReceived(success, minHeight, maxHeight, carpet);
-}

@@ -10,14 +10,15 @@
 #pragma once
 
 #include "TerrainTile.h"
+#include "TerrainQueryInterface.h"
 
 #include <QObject>
 #include <QGeoCoordinate>
 #include <QNetworkReply>
 #include <QMutex>
 
-Q_DECLARE_LOGGING_CATEGORY(TerrainTileManagerLog)
-Q_DECLARE_LOGGING_CATEGORY(TerrainTileManagerVerboseLog)
+Q_DECLARE_LOGGING_CATEGORY(TerrainTilemanagerLog)
+Q_DECLARE_LOGGING_CATEGORY(TerrainTilemanagerVerboseLog)
 
 class TerrainOfflineAirMapQuery;
 
@@ -28,8 +29,8 @@ class TerrainTileManager : public QObject {
 public:
     TerrainTileManager(void);
 
-    void addCoordinateQuery         (TerrainOfflineAirMapQuery* terrainQueryInterface, const QList<QGeoCoordinate>& coordinates);
-    void addPathQuery               (TerrainOfflineAirMapQuery* terrainQueryInterface, const QGeoCoordinate& startPoint, const QGeoCoordinate& endPoint);
+    void addCoordinateQuery         (TerrainQueryInterface* terrainQueryInterface, const QList<QGeoCoordinate>& coordinates);
+    void addPathQuery               (TerrainQueryInterface* terrainQueryInterface, const QGeoCoordinate& startPoint, const QGeoCoordinate& endPoint);
     bool getAltitudesForCoordinates (const QList<QGeoCoordinate>& coordinates, QList<double>& altitudes, bool& error);
 
     static TerrainTileManager* instance();
@@ -51,7 +52,7 @@ private:
     };
 
     typedef struct {
-        TerrainOfflineAirMapQuery*  terrainQueryInterface;
+        TerrainQueryInterface*      terrainQueryInterface;
         QueryMode                   queryMode;
         double                      distanceBetween;        // Distance between each returned height
         double                      finalDistanceBetween;   // Distance between for final height

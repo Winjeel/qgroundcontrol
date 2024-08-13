@@ -35,7 +35,7 @@ TerrainTileManager::TerrainTileManager(void)
 
 }
 
-void TerrainTileManager::addCoordinateQuery(TerrainOfflineAirMapQuery* terrainQueryInterface, const QList<QGeoCoordinate>& coordinates)
+void TerrainTileManager::addCoordinateQuery(TerrainQueryInterface* terrainQueryInterface, const QList<QGeoCoordinate>& coordinates)
 {
     qCDebug(TerrainTileManagerLog) << "TerrainTileManager::addCoordinateQuery count" << coordinates.count();
 
@@ -53,10 +53,10 @@ void TerrainTileManager::addCoordinateQuery(TerrainOfflineAirMapQuery* terrainQu
         if (error) {
             QList<double> noAltitudes;
             qCWarning(TerrainTileManagerLog) << "addCoordinateQuery: signalling failure due to internal error";
-            terrainQueryInterface->_signalCoordinateHeights(false, noAltitudes);
+            emit terrainQueryInterface->coordinateHeightsReceived(false, noAltitudes);
         } else {
             qCDebug(TerrainTileManagerLog) << "addCoordinateQuery: All altitudes taken from cached data";
-            terrainQueryInterface->_signalCoordinateHeights(coordinates.count() == altitudes.count(), altitudes);
+            emit terrainQueryInterface->coordinateHeightsReceived(coordinates.count() == altitudes.count(), altitudes);
         }
     }
 }
@@ -93,7 +93,7 @@ QList<QGeoCoordinate> TerrainTileManager::pathQueryToCoords(const QGeoCoordinate
     return coordinates;
 }
 
-void TerrainTileManager::addPathQuery(TerrainOfflineAirMapQuery* terrainQueryInterface, const QGeoCoordinate &startPoint, const QGeoCoordinate &endPoint)
+void TerrainTileManager::addPathQuery(TerrainQueryInterface* terrainQueryInterface, const QGeoCoordinate &startPoint, const QGeoCoordinate &endPoint)
 {
     QList<QGeoCoordinate> coordinates;
     double distanceBetween;
@@ -113,10 +113,10 @@ void TerrainTileManager::addPathQuery(TerrainOfflineAirMapQuery* terrainQueryInt
     if (error) {
         QList<double> noAltitudes;
         qCWarning(TerrainTileManagerLog) << "addPathQuery: signalling failure due to internal error";
-        terrainQueryInterface->_signalPathHeights(false, distanceBetween, finalDistanceBetween, noAltitudes);
+        emit terrainQueryInterface->pathHeightsReceived(false, distanceBetween, finalDistanceBetween, noAltitudes);
     } else {
         qCDebug(TerrainTileManagerLog) << "addPathQuery: All altitudes taken from cached data";
-        terrainQueryInterface->_signalPathHeights(coordinates.count() == altitudes.count(), distanceBetween, finalDistanceBetween, altitudes);
+        emit terrainQueryInterface->pathHeightsReceived(coordinates.count() == altitudes.count(), distanceBetween, finalDistanceBetween, altitudes);
     }
 }
 
@@ -174,9 +174,9 @@ void TerrainTileManager::_tileFailed(void)
 
     for (const QueuedRequestInfo_t& requestInfo: _requestQueue) {
         if (requestInfo.queryMode == QueryMode::QueryModeCoordinates) {
-            requestInfo.terrainQueryInterface->_signalCoordinateHeights(false, noAltitudes);
+            emit requestInfo.terrainQueryInterface->coordinateHeightsReceived(false, noAltitudes);
         } else if (requestInfo.queryMode == QueryMode::QueryModePath) {
-            requestInfo.terrainQueryInterface->_signalPathHeights(false, requestInfo.distanceBetween, requestInfo.finalDistanceBetween, noAltitudes);
+            emit requestInfo.terrainQueryInterface->pathHeightsReceived(false, requestInfo.distanceBetween, requestInfo.finalDistanceBetween, noAltitudes);
         }
     }
     _requestQueue.clear();
@@ -238,19 +238,19 @@ void TerrainTileManager::_terrainDone(QByteArray responseBytes, QNetworkReply::N
                 if (error) {
                     QList<double> noAltitudes;
                     qCWarning(TerrainTileManagerLog) << "_terrainDone(coordinateQuery): signalling failure due to internal error";
-                    requestInfo.terrainQueryInterface->_signalCoordinateHeights(false, noAltitudes);
+                    emit requestInfo.terrainQueryInterface->coordinateHeightsReceived(false, noAltitudes);
                 } else {
                     qCDebug(TerrainTileManagerLog) << "_terrainDone(coordinateQuery): All altitudes taken from cached data";
-                    requestInfo.terrainQueryInterface->_signalCoordinateHeights(requestInfo.coordinates.count() == altitudes.count(), altitudes);
+                    emit requestInfo.terrainQueryInterface->coordinateHeightsReceived(requestInfo.coordinates.count() == altitudes.count(), altitudes);
                 }
             } else if (requestInfo.queryMode == QueryMode::QueryModePath) {
                 if (error) {
                     QList<double> noAltitudes;
                     qCWarning(TerrainTileManagerLog) << "_terrainDone(coordinateQuery): signalling failure due to internal error";
-                    requestInfo.terrainQueryInterface->_signalPathHeights(false, requestInfo.distanceBetween, requestInfo.finalDistanceBetween, noAltitudes);
+                    emit requestInfo.terrainQueryInterface->pathHeightsReceived(false, requestInfo.distanceBetween, requestInfo.finalDistanceBetween, noAltitudes);
                 } else {
                     qCDebug(TerrainTileManagerLog) << "_terrainDone(coordinateQuery): All altitudes taken from cached data";
-                    requestInfo.terrainQueryInterface->_signalPathHeights(requestInfo.coordinates.count() == altitudes.count(), requestInfo.distanceBetween, requestInfo.finalDistanceBetween, altitudes);
+                    emit requestInfo.terrainQueryInterface->pathHeightsReceived(requestInfo.coordinates.count() == altitudes.count(), requestInfo.distanceBetween, requestInfo.finalDistanceBetween, altitudes);
                 }
             }
             _requestQueue.removeAt(i);
