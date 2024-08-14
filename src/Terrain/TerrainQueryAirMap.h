@@ -28,6 +28,7 @@ public:
     TerrainQueryAirMap(QObject* parent = nullptr);
 
     // Overrides from TerrainQueryInterface
+    void fetchTerrainHeight(const QGeoCoordinate& coordinate) override;
     void requestCoordinateHeights(const QList<QGeoCoordinate>& coordinates) override;
     void requestPathHeights(const QGeoCoordinate& fromCoord, const QGeoCoordinate& toCoord) override;
 #if TERRAIN_CARPET_HEIGHTS_ENABLED
@@ -39,4 +40,9 @@ public:
 private:
     QString _getTileHash(const int x, const int y, const int z) const;
 
+private slots:
+    void _fetchDone(QByteArray responseBytes, QNetworkReply::NetworkError error);
+
+private:
+    QNetworkAccessManager _networkManager;
 };

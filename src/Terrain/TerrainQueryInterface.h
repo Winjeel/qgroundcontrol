@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include "TerrainTile.h"
+
 #include <QObject>
 
 class QGeoCoordinate;
@@ -22,6 +24,10 @@ class TerrainQueryInterface : public QObject
 
 public:
     TerrainQueryInterface(QObject* parent) : QObject(parent) { }
+
+    /// Request terrain heights for specified coodinates.
+    /// Signals: fetchComplete when data is available, or fetchFailed on failure
+    virtual void fetchTerrainHeight(const QGeoCoordinate& coordinate) = 0;
 
     /// Request terrain heights for specified coodinates.
     /// Signals: coordinateHeights when data is available
@@ -44,6 +50,9 @@ public:
     virtual QString getTileHash(const QGeoCoordinate& coordinate) const = 0;
 
 signals:
+    void fetchComplete(TerrainTile tile, QString hash);
+    void fetchFailed(void);
+
     void coordinateHeightsReceived(bool success, QList<double> heights);
     void pathHeightsReceived(bool success, double distanceBetween, double finalDistanceBetween, const QList<double>& heights);
 #if TERRAIN_CARPET_HEIGHTS_ENABLED

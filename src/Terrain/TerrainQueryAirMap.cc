@@ -15,6 +15,9 @@
 #include "QGCFileDownload.h"
 #include "QGCLoggingCategory.h"
 #include "QGCMapEngine.h"
+#include "QGeoMapReplyQGC.h"
+
+#include <QtLocation/private/qgeotilespec_p.h>
 
 #include <QUrlQuery>
 #include <QJsonDocument>
@@ -22,14 +25,64 @@
 #include <QJsonArray>
 
 QGC_LOGGING_CATEGORY(TerrainQueryAirMapLog, "TerrainQueryAirMapLog")
-QGC_LOGGING_CATEGORY(TerrainAirmapQueryVerboseLog, "TerrainAirmapQueryVerboseLog")
 
 static const auto kMapType = UrlFactory::kCopernicusElevationProviderKey;
 
 TerrainQueryAirMap::TerrainQueryAirMap(QObject* parent)
     : TerrainQueryInterface(parent)
 {
-    qCDebug(TerrainAirmapQueryVerboseLog) << "supportsSsl" << QSslSocket::supportsSsl() << "sslLibraryBuildVersionString" << QSslSocket::sslLibraryBuildVersionString();
+    qCDebug(TerrainQueryAirMapLog) << "supportsSsl" << QSslSocket::supportsSsl() << "sslLibraryBuildVersionString" << QSslSocket::sslLibraryBuildVersionString();
+}
+
+void TerrainQueryAirMap::fetchTerrainHeight(const QGeoCoordinate& coordinate)
+{
+    qCDebug(TerrainQueryAirMapLog) << "TerrainQueryAirMap::fetch" << coordinate;
+
+    QNetworkRequest request = getQGCMapEngine()->urlFactory()->getTileURL(kMapType, getQGCMapEngine()->urlFactory()->long2tileX(kMapType,coordinate.longitude(), 1), getQGCMapEngine()->urlFactory()->lat2tileY(kMapType, coordinate.latitude(), 1), 1, &_networkManager);
+
+    QGeoTileSpec spec;
+    spec.setX(getQGCMapEngine()->urlFactory()->long2tileX(kMapType, coordinate.longitude(), 1));
+    spec.setY(getQGCMapEngine()->urlFactory()->lat2tileY(kMapType, coordinate.latitude(), 1));
+    spec.setZoom(1);
+    spec.setMapId(getQGCMapEngine()->urlFactory()->getIdFromType(kMapType));
+
+    QGeoTiledMapReplyQGC* reply = new QGeoTiledMapReplyQGC(&_networkManager, request, spec);
+    connect(reply, &QGeoTiledMapReplyQGC::terrainDone, this, &TerrainQueryAirMap::_fetchDone);
+}
+
+void TerrainQueryAirMap::_fetchDone(QByteArray responseBytes, QNetworkReply::NetworkError error)
+{
+    QGeoTiledMapReplyQGC* reply = qobject_cast<QGeoTiledMapReplyQGC*>(QObject::sender());
+
+    if (!reply) {
+        qCWarning(TerrainQueryAirMapLog) << "Elevation tile fetched but invalid reply data type.";
+        emit fetchFailed();
+        return;
+    }
+
+    // remove from download queue
+    QGeoTileSpec spec = reply->tileSpec();
+    QString hash = _getTileHash(spec.x(), spec.y(), spec.zoom());
+
+    // handle potential errors
+    if (error != QNetworkReply::NoError) {
+        qCWarning(TerrainQueryAirMapLog) << "Elevation tile fetching returned error (" << error << ")";
+        emit fetchFailed();
+        reply->deleteLater();
+        return;
+    }
+    if (responseBytes.isEmpty()) {
+        qCWarning(TerrainQueryAirMapLog) << "Error in fetching elevation tile. Empty response.";
+        emit fetchFailed();
+        reply->deleteLater();
+        return;
+    }
+
+    qCDebug(TerrainQueryAirMapLog) << "Received some bytes of terrain data: " << responseBytes.size();
+
+    TerrainTile terrainTile = TerrainTile(responseBytes);
+    emit fetchComplete(terrainTile, hash);
+    reply->deleteLater();
 }
 
 void TerrainQueryAirMap::requestCoordinateHeights(const QList<QGeoCoordinate>& coordinates)
@@ -85,5 +138,5 @@ QString TerrainQueryAirMap::getTileHash(const QGeoCoordinate& coordinate) const
 
 QString TerrainQueryAirMap::_getTileHash(const int x, const int y, const int z) const
 {
-    return QGCMapEngine::getTileHash("Airmap Elevation", x, y, z);
+    return QGCMapEngine::getTileHash(kMapType, x, y, z);
 }

@@ -10,10 +10,6 @@
 #include "TerrainTileManager.h"
 
 #include "TerrainQuery.h"
-#include "QGCMapEngine.h"
-#include "QGeoMapReplyQGC.h"
-
-#include <QtLocation/private/qgeotilespec_p.h>
 
 #include <qmath.h>
 
@@ -35,7 +31,7 @@ TerrainQueryInterface* TerrainTileManager::newQueryProvider(QObject* parent)
 
 TerrainTileManager::TerrainTileManager(void)
 {
-
+    qRegisterMetaType<TerrainTile>();
 }
 
 void TerrainTileManager::addCoordinateQuery(TerrainQueryInterface* terrainQueryInterface, const QList<QGeoCoordinate>& coordinates)
@@ -146,19 +142,11 @@ bool TerrainTileManager::getAltitudesForCoordinates(const QList<QGeoCoordinate>&
             altitudes.push_back(elevation);
         } else {
             if (_state != State::Downloading) {
-                QNetworkRequest request = getQGCMapEngine()->urlFactory()->getTileURL(
-                    kMapType, getQGCMapEngine()->urlFactory()->long2tileX(kMapType, coordinate.longitude(), 1),
-                    getQGCMapEngine()->urlFactory()->lat2tileY(kMapType, coordinate.latitude(), 1),
-                    1,
-                    &_networkManager);
-                qCDebug(TerrainTileManagerLog) << "TerrainTileManager::getAltitudesForCoordinates query from database" << request.url();
-                QGeoTileSpec spec;
-                spec.setX(getQGCMapEngine()->urlFactory()->long2tileX(kMapType, coordinate.longitude(), 1));
-                spec.setY(getQGCMapEngine()->urlFactory()->lat2tileY(kMapType, coordinate.latitude(), 1));
-                spec.setZoom(1);
-                spec.setMapId(getQGCMapEngine()->urlFactory()->getIdFromType(kMapType));
-                QGeoTiledMapReplyQGC* reply = new QGeoTiledMapReplyQGC(&_networkManager, request, spec);
-                connect(reply, &QGeoTiledMapReplyQGC::terrainDone, this, &TerrainTileManager::_terrainDone);
+                auto request = newQueryProvider(this);
+                // These need to use a QueuedConnection so that the _tilesMutex accesses occur on the correct thread.
+                connect(request, &TerrainQueryInterface::fetchComplete, this, &TerrainTileManager::tileFetchComplete, Qt::ConnectionType::QueuedConnection);
+                connect(request, &TerrainQueryInterface::fetchFailed,   this, &TerrainTileManager::tileFetchFailed,   Qt::ConnectionType::QueuedConnection);
+                request->fetchTerrainHeight(coordinate);
                 _state = State::Downloading;
             }
             _tilesMutex.unlock();
@@ -171,8 +159,17 @@ bool TerrainTileManager::getAltitudesForCoordinates(const QList<QGeoCoordinate>&
     return true;
 }
 
-void TerrainTileManager::_tileFailed(void)
+void TerrainTileManager::tileFetchFailed(void)
 {
+    TerrainQueryInterface* reply = qobject_cast<TerrainQueryInterface*>(QObject::sender());
+    _state = State::Idle;
+
+    if (reply) {
+        reply->deleteLater();
+    } else {
+        qCWarning(TerrainTileManagerLog) << "Elevation tile fetch failed but invalid reply data type.";
+    }
+
     QList<double> noAltitudes;
 
     for (const QueuedRequestInfo_t& requestInfo: _requestQueue) {
@@ -185,50 +182,26 @@ void TerrainTileManager::_tileFailed(void)
     _requestQueue.clear();
 }
 
-void TerrainTileManager::_terrainDone(QByteArray responseBytes, QNetworkReply::NetworkError error)
+void TerrainTileManager::tileFetchComplete(TerrainTile tile, QString hash)
 {
-    QGeoTiledMapReplyQGC* reply = qobject_cast<QGeoTiledMapReplyQGC*>(QObject::sender());
+    TerrainQueryInterface* reply = qobject_cast<TerrainQueryInterface*>(QObject::sender());
     _state = State::Idle;
 
-    if (!reply) {
+    if (reply) {
+        reply->deleteLater();
+    } else {
         qCWarning(TerrainTileManagerLog) << "Elevation tile fetched but invalid reply data type.";
-        return;
     }
 
-    // remove from download queue
-    QGeoTileSpec spec = reply->tileSpec();
-    QString hash = _getTileHash(spec.x(), spec.y(), spec.zoom());
-
-    // handle potential errors
-    if (error != QNetworkReply::NoError) {
-        qCWarning(TerrainTileManagerLog) << "Elevation tile fetching returned error (" << error << ")";
-        _tileFailed();
-        reply->deleteLater();
-        return;
-    }
-    if (responseBytes.isEmpty()) {
-        qCWarning(TerrainTileManagerLog) << "Error in fetching elevation tile. Empty response.";
-        _tileFailed();
-        reply->deleteLater();
-        return;
-    }
-
-    qCDebug(TerrainTileManagerLog) << "Received some bytes of terrain data: " << responseBytes.size();
-
-    TerrainTile* terrainTile = new TerrainTile(responseBytes);
-    if (terrainTile->isValid()) {
+    if (tile.isValid()) {
         _tilesMutex.lock();
         if (!_tiles.contains(hash)) {
-            _tiles.insert(hash, *terrainTile);
-        } else {
-            delete terrainTile;
+            _tiles.insert(hash, tile);
         }
         _tilesMutex.unlock();
     } else {
-        delete terrainTile;
         qCWarning(TerrainTileManagerLog) << "Received invalid tile";
     }
-    reply->deleteLater();
 
     // now try to query the data again
     for (int i = _requestQueue.count() - 1; i >= 0; i--) {
@@ -240,19 +213,19 @@ void TerrainTileManager::_terrainDone(QByteArray responseBytes, QNetworkReply::N
             if (requestInfo.queryMode == QueryMode::QueryModeCoordinates) {
                 if (error) {
                     QList<double> noAltitudes;
-                    qCWarning(TerrainTileManagerLog) << "_terrainDone(coordinateQuery): signalling failure due to internal error";
+                    qCWarning(TerrainTileManagerLog) << "tileFetchComplete(coordinateQuery): signalling failure due to internal error";
                     emit requestInfo.terrainQueryInterface->coordinateHeightsReceived(false, noAltitudes);
                 } else {
-                    qCDebug(TerrainTileManagerLog) << "_terrainDone(coordinateQuery): All altitudes taken from cached data";
+                    qCDebug(TerrainTileManagerLog) << "tileFetchComplete(coordinateQuery): All altitudes taken from cached data";
                     emit requestInfo.terrainQueryInterface->coordinateHeightsReceived(requestInfo.coordinates.count() == altitudes.count(), altitudes);
                 }
             } else if (requestInfo.queryMode == QueryMode::QueryModePath) {
                 if (error) {
                     QList<double> noAltitudes;
-                    qCWarning(TerrainTileManagerLog) << "_terrainDone(coordinateQuery): signalling failure due to internal error";
+                    qCWarning(TerrainTileManagerLog) << "tileFetchComplete(pathQuery): signalling failure due to internal error";
                     emit requestInfo.terrainQueryInterface->pathHeightsReceived(false, requestInfo.distanceBetween, requestInfo.finalDistanceBetween, noAltitudes);
                 } else {
-                    qCDebug(TerrainTileManagerLog) << "_terrainDone(coordinateQuery): All altitudes taken from cached data";
+                    qCDebug(TerrainTileManagerLog) << "tileFetchComplete(pathQuery): All altitudes taken from cached data";
                     emit requestInfo.terrainQueryInterface->pathHeightsReceived(requestInfo.coordinates.count() == altitudes.count(), requestInfo.distanceBetween, requestInfo.finalDistanceBetween, altitudes);
                 }
             }

@@ -17,8 +17,9 @@
 #include <QNetworkReply>
 #include <QMutex>
 
-Q_DECLARE_LOGGING_CATEGORY(TerrainTilemanagerLog)
-Q_DECLARE_LOGGING_CATEGORY(TerrainTilemanagerVerboseLog)
+Q_DECLARE_METATYPE(TerrainTile)
+
+Q_DECLARE_LOGGING_CATEGORY(TerrainTileManagerLog)
 
 /// Used internally by TerrainQueryAirMap to manage terrain tiles
 class TerrainTileManager : public QObject {
@@ -38,8 +39,9 @@ public:
     static TerrainQueryInterface* newQueryProvider(QObject* parent);
     static QList<QGeoCoordinate> pathQueryToCoords(const QGeoCoordinate& fromCoord, const QGeoCoordinate& toCoord, double& distanceBetween, double& finalDistanceBetween);
 
-private slots:
-    void _terrainDone(QByteArray responseBytes, QNetworkReply::NetworkError error);
+public slots:
+    void tileFetchComplete(TerrainTile tile, QString hash);
+    void tileFetchFailed(void);
 
 private:
     enum class State {
@@ -63,7 +65,6 @@ private:
         QList<QGeoCoordinate>       coordinates;
     } QueuedRequestInfo_t;
 
-    void    _tileFailed                         (void);
     QString _getTileHash                        (const QGeoCoordinate& coordinate);
 
     QList<QueuedRequestInfo_t>  _requestQueue;
