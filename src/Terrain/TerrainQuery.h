@@ -29,6 +29,7 @@ class TerrainAtCoordinateBatchManager : public QObject {
 
 public:
     TerrainAtCoordinateBatchManager(void);
+    ~TerrainAtCoordinateBatchManager(void);
 
     void addQuery(TerrainAtCoordinateQuery* terrainAtCoordinateQuery, const QList<QGeoCoordinate>& coordinates);
 
@@ -63,7 +64,7 @@ private:
     State                       _state = State::Idle;
     const int                   _batchTimeout = 500;
     QTimer                      _batchTimer;
-    TerrainOfflineAirMapQuery   _terrainQuery;
+    TerrainQueryInterface*      _pTerrainQuery;
 };
 
 // IMPORTANT NOTE: The terrain query objects below must continue to live until the the terrain system signals data back through them.

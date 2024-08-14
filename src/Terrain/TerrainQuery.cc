@@ -19,10 +19,18 @@ Q_GLOBAL_STATIC(TerrainAtCoordinateBatchManager, _TerrainAtCoordinateBatchManage
 
 TerrainAtCoordinateBatchManager::TerrainAtCoordinateBatchManager(void)
 {
+    _pTerrainQuery = TerrainTileManager::newQueryProvider(this);
     _batchTimer.setSingleShot(true);
     _batchTimer.setInterval(_batchTimeout);
     connect(&_batchTimer, &QTimer::timeout, this, &TerrainAtCoordinateBatchManager::_sendNextBatch);
-    connect(&_terrainQuery, &TerrainQueryInterface::coordinateHeightsReceived, this, &TerrainAtCoordinateBatchManager::_coordinateHeights);
+    connect(_pTerrainQuery, &TerrainQueryInterface::coordinateHeightsReceived, this, &TerrainAtCoordinateBatchManager::_coordinateHeights);
+}
+
+TerrainAtCoordinateBatchManager::~TerrainAtCoordinateBatchManager(void)
+{
+    if (_pTerrainQuery) {
+        delete _pTerrainQuery;
+    }
 }
 
 void TerrainAtCoordinateBatchManager::addQuery(TerrainAtCoordinateQuery* terrainAtCoordinateQuery, const QList<QGeoCoordinate>& coordinates)
@@ -70,7 +78,7 @@ void TerrainAtCoordinateBatchManager::_sendNextBatch(void)
     qCDebug(TerrainQueryLog) << "TerrainAtCoordinateBatchManager::_sendNextBatch requesting next batch _state:_requestQueue.count:_sentRequests.count" << _stateToString(_state) << _requestQueue.count() << _sentRequests.count();
 
     _state = State::Downloading;
-    _terrainQuery.requestCoordinateHeights(coords);
+    _pTerrainQuery->requestCoordinateHeights(coords);
 }
 
 void TerrainAtCoordinateBatchManager::_batchFailed(void)
