@@ -191,12 +191,21 @@ TerrainPathQuery::TerrainPathQuery(bool autoDelete)
    : _autoDelete   (autoDelete)
 {
     qRegisterMetaType<PathHeightInfo_t>();
-    connect(&_terrainQuery, &TerrainQueryInterface::pathHeightsReceived, this, &TerrainPathQuery::_pathHeights);
+
+    _pTerrainQuery = TerrainTileManager::newQueryProvider(this);
+    connect(_pTerrainQuery, &TerrainQueryInterface::pathHeightsReceived, this, &TerrainPathQuery::_pathHeights);
+}
+
+TerrainPathQuery::~TerrainPathQuery()
+{
+    if (_pTerrainQuery) {
+        delete _pTerrainQuery;
+    }
 }
 
 void TerrainPathQuery::requestData(const QGeoCoordinate& fromCoord, const QGeoCoordinate& toCoord)
 {
-    _terrainQuery.requestPathHeights(fromCoord, toCoord);
+    _pTerrainQuery->requestPathHeights(fromCoord, toCoord);
 }
 
 void TerrainPathQuery::_pathHeights(bool success, double distanceBetween, double finalDistanceBetween, const QList<double>& heights)

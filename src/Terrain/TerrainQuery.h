@@ -111,6 +111,7 @@ class TerrainPathQuery : public QObject
 public:
     /// @param autoDelete true: object will delete itself after it signals results
     TerrainPathQuery(bool autoDelete);
+    ~TerrainPathQuery();
 
     /// Async terrain query for terrain heights between two lat/lon coordinates. When the query is done, the terrainData() signal
     /// is emitted.
@@ -132,7 +133,7 @@ private slots:
 
 private:
     bool                        _autoDelete;
-    TerrainOfflineAirMapQuery   _terrainQuery;
+    TerrainQueryInterface*      _pTerrainQuery;
 };
 
 Q_DECLARE_METATYPE(TerrainPathQuery::PathHeightInfo_t)
