@@ -7,7 +7,7 @@
  *
  ****************************************************************************/
 
-#include "TerrainAirmapQuery.h"
+#include "TerrainQueryAirMap.h"
 #include "TerrainTileManager.h"
 #include "TerrainQueryTest.h"
 
@@ -20,16 +20,16 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
-QGC_LOGGING_CATEGORY(TerrainAirmapQueryLog, "TerrainAirmapQueryLog")
+QGC_LOGGING_CATEGORY(TerrainQueryAirMapLog, "TerrainQueryAirMapLog")
 QGC_LOGGING_CATEGORY(TerrainAirmapQueryVerboseLog, "TerrainAirmapQueryVerboseLog")
 
-TerrainOfflineAirMapQuery::TerrainOfflineAirMapQuery(QObject* parent)
+TerrainQueryAirMap::TerrainQueryAirMap(QObject* parent)
     : TerrainQueryInterface(parent)
 {
     qCDebug(TerrainAirmapQueryVerboseLog) << "supportsSsl" << QSslSocket::supportsSsl() << "sslLibraryBuildVersionString" << QSslSocket::sslLibraryBuildVersionString();
 }
 
-void TerrainOfflineAirMapQuery::requestCoordinateHeights(const QList<QGeoCoordinate>& coordinates)
+void TerrainQueryAirMap::requestCoordinateHeights(const QList<QGeoCoordinate>& coordinates)
 {
     if (qgcApp()->runningUnitTests()) {
         UnitTestTerrainQuery(this).requestCoordinateHeights(coordinates);
@@ -43,7 +43,7 @@ void TerrainOfflineAirMapQuery::requestCoordinateHeights(const QList<QGeoCoordin
     TerrainTileManager::instance()->addCoordinateQuery(this, coordinates);
 }
 
-void TerrainOfflineAirMapQuery::requestPathHeights(const QGeoCoordinate& fromCoord, const QGeoCoordinate& toCoord)
+void TerrainQueryAirMap::requestPathHeights(const QGeoCoordinate& fromCoord, const QGeoCoordinate& toCoord)
 {
     if (qgcApp()->runningUnitTests()) {
         UnitTestTerrainQuery(this).requestPathHeights(fromCoord, toCoord);
@@ -53,7 +53,7 @@ void TerrainOfflineAirMapQuery::requestPathHeights(const QGeoCoordinate& fromCoo
     TerrainTileManager::instance()->addPathQuery(this, fromCoord, toCoord);
 }
 
-void TerrainOfflineAirMapQuery::requestCarpetHeights(const QGeoCoordinate& swCoord, const QGeoCoordinate& neCoord, bool statsOnly)
+void TerrainQueryAirMap::requestCarpetHeights(const QGeoCoordinate& swCoord, const QGeoCoordinate& neCoord, bool statsOnly)
 {
     if (qgcApp()->runningUnitTests()) {
         UnitTestTerrainQuery(this).requestCarpetHeights(swCoord, neCoord, statsOnly);

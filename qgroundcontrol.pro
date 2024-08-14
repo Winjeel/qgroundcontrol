@@ -434,7 +434,7 @@ HEADERS += \
     src/QmlControls/CustomAction.h \
     src/QmlControls/CustomActionManager.h \
     src/QmlControls/QmlUnitsConversion.h \
-    src/Terrain/TerrainAirmapQuery.h \
+    src/Terrain/TerrainQueryAirMap.h \
     src/Terrain/TerrainQueryInterface.h \
     src/Terrain/TerrainQueryTest.h \
     src/Terrain/TerrainTileManager.h \
@@ -452,7 +452,7 @@ contains (DEFINES, QGC_ENABLE_PAIRING) {
 
 SOURCES += \
     src/QmlControls/CustomActionManager.cc \
-    src/Terrain/TerrainAirmapQuery.cc \
+    src/Terrain/TerrainQueryAirMap.cc \
     src/Terrain/TerrainQueryTest.cc \
     src/Terrain/TerrainTileManager.cc \
     src/Vehicle/VehicleEscStatusFactGroup.cc \

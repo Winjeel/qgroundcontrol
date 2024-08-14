@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "TerrainAirmapQuery.h"
+#include "TerrainQueryAirMap.h"
 #include "QGCMapEngineData.h"
 
 #include <QObject>

@@ -20,7 +20,7 @@
 Q_DECLARE_LOGGING_CATEGORY(TerrainTilemanagerLog)
 Q_DECLARE_LOGGING_CATEGORY(TerrainTilemanagerVerboseLog)
 
-/// Used internally by TerrainOfflineAirMapQuery to manage terrain tiles
+/// Used internally by TerrainQueryAirMap to manage terrain tiles
 class TerrainTileManager : public QObject {
     Q_OBJECT
 

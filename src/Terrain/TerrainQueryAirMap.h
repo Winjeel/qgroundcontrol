@@ -16,17 +16,16 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 
-Q_DECLARE_LOGGING_CATEGORY(TerrainAirmapQueryLog)
-Q_DECLARE_LOGGING_CATEGORY(TerrainAirmapQueryVerboseLog)
+Q_DECLARE_LOGGING_CATEGORY(TerrainQueryAirMapLog)
 
 class QGeoCoordinate;
 
 /// AirMap offline cachable implementation of terrain queries
-class TerrainOfflineAirMapQuery : public TerrainQueryInterface {
+class TerrainQueryAirMap : public TerrainQueryInterface {
     Q_OBJECT
 
 public:
-    TerrainOfflineAirMapQuery(QObject* parent = nullptr);
+    TerrainQueryAirMap(QObject* parent = nullptr);
 
     // Overrides from TerrainQueryInterface
     void requestCoordinateHeights(const QList<QGeoCoordinate>& coordinates) final;
