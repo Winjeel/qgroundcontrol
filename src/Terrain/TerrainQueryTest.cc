@@ -65,6 +65,7 @@ void UnitTestTerrainQuery::requestPathHeights(const QGeoCoordinate& fromCoord, c
     );
 }
 
+#if TERRAIN_CARPET_HEIGHTS_ENABLED
 void UnitTestTerrainQuery::requestCarpetHeights(const QGeoCoordinate& swCoord, const QGeoCoordinate& neCoord, bool) {
     QList<QList<double>> carpet;
 
@@ -93,6 +94,7 @@ void UnitTestTerrainQuery::requestCarpetHeights(const QGeoCoordinate& swCoord, c
     }
     emit qobject_cast<TerrainQueryInterface*>(parent())->carpetHeightsReceived(true, min, max, carpet);
 }
+#endif // TERRAIN_CARPET_HEIGHTS_ENABLED
 
 UnitTestTerrainQuery::PathHeightInfo_t UnitTestTerrainQuery::_requestPathHeights(const QGeoCoordinate& fromCoord, const QGeoCoordinate& toCoord)
 {

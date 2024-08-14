@@ -50,7 +50,9 @@ private:
     enum QueryMode {
         QueryModeCoordinates,
         QueryModePath,
+#if TERRAIN_CARPET_HEIGHTS_ENABLED
         QueryModeCarpet
+#endif // TERRAIN_CARPET_HEIGHTS_ENABLED
     };
 
     typedef struct {

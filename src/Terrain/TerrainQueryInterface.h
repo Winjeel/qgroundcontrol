@@ -13,6 +13,8 @@
 
 class QGeoCoordinate;
 
+#define TERRAIN_CARPET_HEIGHTS_ENABLED 0
+
 /// Base class for offline/online terrain queries
 class TerrainQueryInterface : public QObject
 {
@@ -30,17 +32,21 @@ public:
     ///     @param coordinates to query
     virtual void requestPathHeights(const QGeoCoordinate& fromCoord, const QGeoCoordinate& toCoord) = 0;
 
+#if TERRAIN_CARPET_HEIGHTS_ENABLED
     /// Request terrain heights for the rectangular area specified.
     /// Signals: carpetHeights when data is available
     ///     @param swCoord South-West bound of rectangular area to query
     ///     @param neCoord North-East bound of rectangular area to query
     ///     @param statsOnly true: Return only stats, no carpet data
     virtual void requestCarpetHeights(const QGeoCoordinate& swCoord, const QGeoCoordinate& neCoord, bool statsOnly) = 0;
+#endif // TERRAIN_CARPET_HEIGHTS_ENABLED
 
     virtual QString getTileHash(const QGeoCoordinate& coordinate) const = 0;
 
 signals:
     void coordinateHeightsReceived(bool success, QList<double> heights);
     void pathHeightsReceived(bool success, double distanceBetween, double finalDistanceBetween, const QList<double>& heights);
+#if TERRAIN_CARPET_HEIGHTS_ENABLED
     void carpetHeightsReceived(bool success, double minHeight, double maxHeight, const QList<QList<double>>& carpet);
+#endif // TERRAIN_CARPET_HEIGHTS_ENABLED
 };

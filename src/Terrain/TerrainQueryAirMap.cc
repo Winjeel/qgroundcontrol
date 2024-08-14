@@ -56,6 +56,7 @@ void TerrainQueryAirMap::requestPathHeights(const QGeoCoordinate& fromCoord, con
     TerrainTileManager::instance()->addPathQuery(this, fromCoord, toCoord);
 }
 
+#if TERRAIN_CARPET_HEIGHTS_ENABLED
 void TerrainQueryAirMap::requestCarpetHeights(const QGeoCoordinate& swCoord, const QGeoCoordinate& neCoord, bool statsOnly)
 {
     if (qgcApp()->runningUnitTests()) {
@@ -69,6 +70,7 @@ void TerrainQueryAirMap::requestCarpetHeights(const QGeoCoordinate& swCoord, con
     Q_UNUSED(statsOnly);
     qWarning() << "Carpet queries are currently not supported from offline air map data";
 }
+#endif // TERRAIN_CARPET_HEIGHTS_ENABLED
 
 QString TerrainQueryAirMap::getTileHash(const QGeoCoordinate& coordinate) const
 {

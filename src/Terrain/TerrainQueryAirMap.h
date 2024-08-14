@@ -30,7 +30,9 @@ public:
     // Overrides from TerrainQueryInterface
     void requestCoordinateHeights(const QList<QGeoCoordinate>& coordinates) override;
     void requestPathHeights(const QGeoCoordinate& fromCoord, const QGeoCoordinate& toCoord) override;
+#if TERRAIN_CARPET_HEIGHTS_ENABLED
     void requestCarpetHeights(const QGeoCoordinate& swCoord, const QGeoCoordinate& neCoord, bool statsOnly) override;
+#endif // TERRAIN_CARPET_HEIGHTS_ENABLED
 
     QString getTileHash(const QGeoCoordinate& coordinate) const final;
 
