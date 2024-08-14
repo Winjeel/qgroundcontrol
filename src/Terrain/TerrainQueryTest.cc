@@ -45,7 +45,7 @@ const UnitTestTerrainQuery::HillRegion UnitTestTerrainQuery::hillRegion{{
 const double UnitTestTerrainQuery::HillRegion::radius = UnitTestTerrainQuery::regionSizeDeg / UnitTestTerrainQuery::one_second_deg;
 
 UnitTestTerrainQuery::UnitTestTerrainQuery(TerrainQueryInterface* parent)
-    :TerrainQueryInterface(parent)
+    :TerrainQueryAirMap(parent)
 {
 
 }

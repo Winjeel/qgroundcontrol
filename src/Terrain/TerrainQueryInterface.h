@@ -37,6 +37,8 @@ public:
     ///     @param statsOnly true: Return only stats, no carpet data
     virtual void requestCarpetHeights(const QGeoCoordinate& swCoord, const QGeoCoordinate& neCoord, bool statsOnly) = 0;
 
+    virtual QString getTileHash(const QGeoCoordinate& coordinate) const = 0;
+
 signals:
     void coordinateHeightsReceived(bool success, QList<double> heights);
     void pathHeightsReceived(bool success, double distanceBetween, double finalDistanceBetween, const QList<double>& heights);

@@ -22,8 +22,6 @@ QGC_LOGGING_CATEGORY(TerrainTileManagerVerboseLog, "TerrainTileManagerVerboseLog
 
 Q_GLOBAL_STATIC(TerrainTileManager, s_terrainTileManager)
 
-static const auto kMapType = UrlFactory::kCopernicusElevationProviderKey;
-
 
 TerrainTileManager* TerrainTileManager::instance(void)
 {
@@ -199,7 +197,7 @@ void TerrainTileManager::_terrainDone(QByteArray responseBytes, QNetworkReply::N
 
     // remove from download queue
     QGeoTileSpec spec = reply->tileSpec();
-    QString hash = QGCMapEngine::getTileHash(kMapType, spec.x(), spec.y(), spec.zoom());
+    QString hash = _getTileHash(spec.x(), spec.y(), spec.zoom());
 
     // handle potential errors
     if (error != QNetworkReply::NoError) {
@@ -265,13 +263,9 @@ void TerrainTileManager::_terrainDone(QByteArray responseBytes, QNetworkReply::N
 
 QString TerrainTileManager::_getTileHash(const QGeoCoordinate& coordinate)
 {
-    QString ret = QGCMapEngine::getTileHash(
-        kMapType,
-        getQGCMapEngine()->urlFactory()->long2tileX(kMapType, coordinate.longitude(), 1),
-        getQGCMapEngine()->urlFactory()->lat2tileY(kMapType, coordinate.latitude(), 1),
-        1);
-    qCDebug(TerrainTileManagerVerboseLog) << "Computing unique tile hash for " << coordinate << ret;
-
-    return ret;
+    const auto prov = newQueryProvider(this);
+    const auto hash = prov->getTileHash(coordinate);
+    delete prov;
+    return hash;
 }
 

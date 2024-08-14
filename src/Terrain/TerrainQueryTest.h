@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "TerrainQueryInterface.h"
+#include "TerrainQueryAirMap.h"
 
 #include <QObject>
 #include <QGeoCoordinate>
@@ -24,7 +24,7 @@ Q_DECLARE_LOGGING_CATEGORY(TerrainQueryTestLog)
 /// @details It provides preset, emulated, 1 arc-second (SRTM1) resolution regions that are either
 /// flat or sloped in a fashion that aids testing terrain-sensitive functionality. All emulated
 /// regions are positioned around Point Nemo - should real terrain became useful and checked in one day.
-class UnitTestTerrainQuery : public TerrainQueryInterface {
+class UnitTestTerrainQuery : public TerrainQueryAirMap {
 public:
 
     static constexpr double regionSizeDeg     = 0.1;      // all regions are 0.1deg (~11km) square

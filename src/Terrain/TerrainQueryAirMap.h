@@ -28,7 +28,13 @@ public:
     TerrainQueryAirMap(QObject* parent = nullptr);
 
     // Overrides from TerrainQueryInterface
-    void requestCoordinateHeights(const QList<QGeoCoordinate>& coordinates) final;
-    void requestPathHeights(const QGeoCoordinate& fromCoord, const QGeoCoordinate& toCoord) final;
-    void requestCarpetHeights(const QGeoCoordinate& swCoord, const QGeoCoordinate& neCoord, bool statsOnly) final;
+    void requestCoordinateHeights(const QList<QGeoCoordinate>& coordinates) override;
+    void requestPathHeights(const QGeoCoordinate& fromCoord, const QGeoCoordinate& toCoord) override;
+    void requestCarpetHeights(const QGeoCoordinate& swCoord, const QGeoCoordinate& neCoord, bool statsOnly) override;
+
+    QString getTileHash(const QGeoCoordinate& coordinate) const final;
+
+private:
+    QString _getTileHash(const int x, const int y, const int z) const;
+
 };

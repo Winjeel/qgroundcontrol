@@ -14,6 +14,7 @@
 #include "QGCApplication.h"
 #include "QGCFileDownload.h"
 #include "QGCLoggingCategory.h"
+#include "QGCMapEngine.h"
 
 #include <QUrlQuery>
 #include <QJsonDocument>
@@ -22,6 +23,8 @@
 
 QGC_LOGGING_CATEGORY(TerrainQueryAirMapLog, "TerrainQueryAirMapLog")
 QGC_LOGGING_CATEGORY(TerrainAirmapQueryVerboseLog, "TerrainAirmapQueryVerboseLog")
+
+static const auto kMapType = UrlFactory::kCopernicusElevationProviderKey;
 
 TerrainQueryAirMap::TerrainQueryAirMap(QObject* parent)
     : TerrainQueryInterface(parent)
@@ -65,4 +68,20 @@ void TerrainQueryAirMap::requestCarpetHeights(const QGeoCoordinate& swCoord, con
     Q_UNUSED(neCoord);
     Q_UNUSED(statsOnly);
     qWarning() << "Carpet queries are currently not supported from offline air map data";
+}
+
+QString TerrainQueryAirMap::getTileHash(const QGeoCoordinate& coordinate) const
+{
+    const int z = 1;
+    const int x = getQGCMapEngine()->urlFactory()->long2tileX(kMapType, coordinate.longitude(), z);
+    const int y = getQGCMapEngine()->urlFactory()->lat2tileY(kMapType, coordinate.latitude(), z);
+
+    const QString ret = _getTileHash(x, y, z);
+    qCDebug(TerrainQueryAirMapLog) << "Computing unique tile hash for " << coordinate << "=>" << ret;
+    return ret;
+}
+
+QString TerrainQueryAirMap::_getTileHash(const int x, const int y, const int z) const
+{
+    return QGCMapEngine::getTileHash("Airmap Elevation", x, y, z);
 }
