@@ -20,8 +20,6 @@
 Q_DECLARE_LOGGING_CATEGORY(TerrainTilemanagerLog)
 Q_DECLARE_LOGGING_CATEGORY(TerrainTilemanagerVerboseLog)
 
-class TerrainOfflineAirMapQuery;
-
 /// Used internally by TerrainOfflineAirMapQuery to manage terrain tiles
 class TerrainTileManager : public QObject {
     Q_OBJECT
@@ -34,6 +32,10 @@ public:
     bool getAltitudesForCoordinates (const QList<QGeoCoordinate>& coordinates, QList<double>& altitudes, bool& error);
 
     static TerrainTileManager* instance();
+
+    // Returns a new instance of a TerrainQueryInterface.
+    // Caller is responsible for deleting instance.
+    static TerrainQueryInterface* newQueryProvider(QObject* parent);
     static QList<QGeoCoordinate> pathQueryToCoords(const QGeoCoordinate& fromCoord, const QGeoCoordinate& toCoord, double& distanceBetween, double& finalDistanceBetween);
 
 private slots:

@@ -30,6 +30,11 @@ TerrainTileManager* TerrainTileManager::instance(void)
     return s_terrainTileManager();
 }
 
+TerrainQueryInterface* TerrainTileManager::newQueryProvider(QObject* parent)
+{
+    return new TerrainOfflineAirMapQuery(parent);
+}
+
 TerrainTileManager::TerrainTileManager(void)
 {
 
