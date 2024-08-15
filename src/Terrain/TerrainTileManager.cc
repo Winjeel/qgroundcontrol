@@ -11,6 +11,7 @@
 
 #include "TerrainQuery.h"
 #include "TerrainQueryAirMap.h"
+#include "TerrainQuerySRTM.h"
 
 #include <qmath.h>
 
