@@ -44,7 +44,7 @@ const UnitTestTerrainQuery::HillRegion UnitTestTerrainQuery::hillRegion{{
 }};
 const double UnitTestTerrainQuery::HillRegion::radius = UnitTestTerrainQuery::regionSizeDeg / UnitTestTerrainQuery::one_second_deg;
 
-UnitTestTerrainQuery::UnitTestTerrainQuery(TerrainQueryInterface* parent)
+UnitTestTerrainQuery::UnitTestTerrainQuery(QObject* parent)
     :TerrainQueryAirMap(parent)
 {
 
@@ -52,12 +52,12 @@ UnitTestTerrainQuery::UnitTestTerrainQuery(TerrainQueryInterface* parent)
 
 void UnitTestTerrainQuery::requestCoordinateHeights(const QList<QGeoCoordinate>& coordinates) {
     QList<double> result = _requestCoordinateHeights(coordinates);
-    emit qobject_cast<TerrainQueryInterface*>(parent())->coordinateHeightsReceived(result.size() == coordinates.size(), result);
+    emit coordinateHeightsReceived(result.size() == coordinates.size(), result);
 }
 
 void UnitTestTerrainQuery::requestPathHeights(const QGeoCoordinate& fromCoord, const QGeoCoordinate& toCoord) {
     auto pathHeightInfo = _requestPathHeights(fromCoord, toCoord);
-    emit qobject_cast<TerrainQueryInterface*>(parent())->pathHeightsReceived(
+    emit pathHeightsReceived(
         pathHeightInfo.rgHeights.count() > 0,
         pathHeightInfo.distanceBetween,
         pathHeightInfo.finalDistanceBetween,
@@ -71,7 +71,7 @@ void UnitTestTerrainQuery::requestCarpetHeights(const QGeoCoordinate& swCoord, c
 
     if (swCoord.longitude() > neCoord.longitude() || swCoord.latitude() > neCoord.latitude()) {
         qCWarning(TerrainQueryTestLog) << "UnitTestTerrainQuery::requestCarpetHeights: Internal Error - bad carpet coords";
-        emit qobject_cast<TerrainQueryInterface*>(parent())->carpetHeightsReceived(false, qQNaN(), qQNaN(), carpet);
+        emit carpetHeightsReceived(false, qQNaN(), qQNaN(), carpet);
         return;
     }
 
@@ -92,7 +92,7 @@ void UnitTestTerrainQuery::requestCarpetHeights(const QGeoCoordinate& swCoord, c
         }
         carpet.append(row);
     }
-    emit qobject_cast<TerrainQueryInterface*>(parent())->carpetHeightsReceived(true, min, max, carpet);
+    emit carpetHeightsReceived(true, min, max, carpet);
 }
 #endif // TERRAIN_CARPET_HEIGHTS_ENABLED
 

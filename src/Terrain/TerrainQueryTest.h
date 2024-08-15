@@ -74,7 +74,7 @@ public:
     };
     static const HillRegion hillRegion;
 
-    UnitTestTerrainQuery(TerrainQueryInterface* parent = nullptr);
+    UnitTestTerrainQuery(QObject* parent = nullptr);
 
     // Overrides from TerrainQueryInterface
     void requestCoordinateHeights   (const QList<QGeoCoordinate>& coordinates) override;

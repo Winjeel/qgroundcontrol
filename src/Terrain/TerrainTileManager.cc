@@ -12,6 +12,11 @@
 #include "TerrainQuery.h"
 #include "TerrainQueryAirMap.h"
 #include "TerrainQuerySRTM.h"
+#include "TerrainQueryTest.h"
+
+#include "QGCApplication.h"
+#include "SettingsManager.h"
+#include "FlightMapSettings.h"
 
 #include <qmath.h>
 
@@ -28,7 +33,20 @@ TerrainTileManager* TerrainTileManager::instance(void)
 
 TerrainQueryInterface* TerrainTileManager::newQueryProvider(QObject* parent)
 {
-    return new TerrainQueryAirMap(parent);
+    const auto mapSettings = qgcApp()->toolbox()->settingsManager()->flightMapSettings();
+    const auto providerType = FlightMapSettings::ElevationProvider(mapSettings->elevationProvider()->enumIndex());
+
+    TerrainQueryInterface* terrainQuery;
+    if (qgcApp()->runningUnitTests()) {
+        terrainQuery = new UnitTestTerrainQuery(parent);
+    } else if (providerType == FlightMapSettings::ElevationProvider::LocalSRTM) {
+        terrainQuery = new TerrainQuerySRTM(parent);
+    } else {
+        terrainQuery = new TerrainQueryAirMap(parent);
+    }
+
+    qCDebug(TerrainTileManagerLog) << "newQueryProvider() for" << parent << "=>" << terrainQuery;
+    return terrainQuery;
 }
 
 TerrainTileManager::TerrainTileManager(void)

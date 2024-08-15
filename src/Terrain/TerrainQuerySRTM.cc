@@ -9,7 +9,6 @@
 
 #include "TerrainQuerySRTM.h"
 #include "TerrainTileManager.h"
-#include "TerrainQueryTest.h"
 
 #include "AppSettings.h"
 #include "QGCApplication.h"
@@ -108,36 +107,17 @@ void TerrainQuerySRTM::fetchTerrainHeight(const QGeoCoordinate& coordinate)
 
 void TerrainQuerySRTM::requestCoordinateHeights(const QList<QGeoCoordinate>& coordinates)
 {
-    if (qgcApp()->runningUnitTests()) {
-        UnitTestTerrainQuery(this).requestCoordinateHeights(coordinates);
-        return;
-    }
-
-    if (coordinates.length() == 0) {
-        return;
-    }
-
     TerrainTileManager::instance()->addCoordinateQuery(this, coordinates);
 }
 
 void TerrainQuerySRTM::requestPathHeights(const QGeoCoordinate& fromCoord, const QGeoCoordinate& toCoord)
 {
-    if (qgcApp()->runningUnitTests()) {
-        UnitTestTerrainQuery(this).requestPathHeights(fromCoord, toCoord);
-        return;
-    }
-
     TerrainTileManager::instance()->addPathQuery(this, fromCoord, toCoord);
 }
 
 #if TERRAIN_CARPET_HEIGHTS_ENABLED
 void TerrainQuerySRTM::requestCarpetHeights(const QGeoCoordinate& swCoord, const QGeoCoordinate& neCoord, bool statsOnly)
 {
-    if (qgcApp()->runningUnitTests()) {
-        UnitTestTerrainQuery(this).requestCarpetHeights(swCoord, neCoord, statsOnly);
-        return;
-    }
-
     Q_UNUSED(swCoord);
     Q_UNUSED(neCoord);
     Q_UNUSED(statsOnly);
