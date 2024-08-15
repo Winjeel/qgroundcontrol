@@ -9,12 +9,13 @@
 
 #pragma once
 
-#include "TerrainQueryAirMap.h"
+#include "TerrainQueryInterface.h"
 #include "QGCMapEngineData.h"
 
 #include <QObject>
 #include <QGeoCoordinate>
 #include <QGeoRectangle>
+#include <QLoggingCategory>
 #include <QTimer>
 
 

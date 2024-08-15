@@ -10,6 +10,7 @@
 #include "TerrainTileManager.h"
 
 #include "TerrainQuery.h"
+#include "TerrainQueryAirMap.h"
 
 #include <qmath.h>
 
