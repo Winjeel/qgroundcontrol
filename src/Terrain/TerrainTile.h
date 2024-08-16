@@ -2,6 +2,7 @@
 #define TERRAINTILE_H
 
 #include "QGCLoggingCategory.h"
+#include "Terrain/AP_SRTM_Grid.h"
 
 #include <QGeoCoordinate>
 
@@ -18,6 +19,13 @@ class TerrainTile
 public:
     TerrainTile() = default;
     ~TerrainTile();
+
+    /**
+    * Constructor from ArduPilot SRTM elevation data
+    *
+    * @param block the SRTM data block
+    */
+    TerrainTile(const AP_SRTM_Grid::Block& block);
 
     /**
     * Constructor from serialized elevation data (either from file or web)

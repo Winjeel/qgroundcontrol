@@ -31,6 +31,59 @@ const char*  TerrainTile::_jsonMinElevationKey  = "min";
 const char*  TerrainTile::_jsonAvgElevationKey  = "avg";
 const char*  TerrainTile::_jsonCarpetKey        = "carpet";
 
+TerrainTile::TerrainTile(const AP_SRTM_Grid::Block& block)
+{
+    _tileInfo.gridSizeLat = AP_SRTM_Grid::BLOCK_SIZE_X;
+    _tileInfo.gridSizeLon = AP_SRTM_Grid::BLOCK_SIZE_Y;
+
+    const auto swCorner = QGeoCoordinate(block.lat / 1e7, block.lon / 1e7);
+    const auto north_overlap =  block.spacing * AP_SRTM_Grid::BLOCK_SIZE_X;
+    const auto east_overlap =   block.spacing * AP_SRTM_Grid::BLOCK_SIZE_Y;
+    const auto neCorner = swCorner.atDistanceAndAzimuth(north_overlap, 0.0)
+                                  .atDistanceAndAzimuth(east_overlap, 90.0);
+
+    _tileInfo.swLat = swCorner.latitude();
+    _tileInfo.swLon = swCorner.longitude();
+    _tileInfo.neLat = neCorner.latitude();
+    _tileInfo.neLon = neCorner.longitude();
+
+    _cellSizeLat = (_tileInfo.neLat - _tileInfo.swLat) / _tileInfo.gridSizeLat;
+    _cellSizeLon = (_tileInfo.neLon - _tileInfo.swLon) / _tileInfo.gridSizeLon;
+
+#if defined(QT_DEBUG)
+    const auto oneCellEast =  QGeoCoordinate{ _tileInfo.swLat               , _tileInfo.swLon + _cellSizeLon };
+    const auto oneCellNorth = QGeoCoordinate{ _tileInfo.swLat + _cellSizeLat, _tileInfo.swLon                };
+
+    qCDebug(TerrainTileLog) << this << "distance cell N size expect 100, got" << swCorner.distanceTo(oneCellNorth);
+    qCDebug(TerrainTileLog) << this << "distance cell E size expect 100, got" << swCorner.distanceTo(oneCellEast);
+#endif // defined(QT_DEBUG)
+
+    _tileInfo.minElevation = INT16_MAX;
+    _tileInfo.maxElevation = INT16_MIN;
+    double accum = 0.0;
+    uint32_t count = 0;
+
+    _elevationData.reserve(AP_SRTM_Grid::BLOCK_SIZE_X);
+    for (size_t i = 0; i < AP_SRTM_Grid::BLOCK_SIZE_X; i++) {
+        QList inner = QList<int16_t>();
+        inner.reserve(AP_SRTM_Grid::BLOCK_SIZE_Y);
+        for (size_t j = 0; j < AP_SRTM_Grid::BLOCK_SIZE_Y; j++) {
+            const auto height = block.height[i][j];
+            inner.append(height);
+
+            _tileInfo.minElevation = qMin(_tileInfo.minElevation, height);
+            _tileInfo.maxElevation = qMax(_tileInfo.maxElevation, height);
+            accum += height;
+            count++;
+        }
+        _elevationData.append(inner);
+    }
+    _tileInfo.avgElevation = (accum / count);
+    qCDebug(TerrainTileLog) << this << "SRTM heights min:avg:max" << _tileInfo.minElevation << _tileInfo.avgElevation << _tileInfo.maxElevation;
+
+    _isValid = true;
+}
+
 TerrainTile::TerrainTile(const QByteArray& byteArray)
 {
     // Copy tile info
@@ -105,8 +158,9 @@ double TerrainTile::elevation(const QGeoCoordinate& coordinate) const
     const double latDeltaSw = coordinate.latitude() - _tileInfo.swLat;
     const double lonDeltaSw = coordinate.longitude() - _tileInfo.swLon;
 
-    const int16_t latIndex = qFloor(latDeltaSw / _cellSizeLat);
-    const int16_t lonIndex = qFloor(lonDeltaSw / _cellSizeLon);
+    // We truncate rather than round down to allow a small amount of error in SRTM files.
+    const int16_t latIndex = static_cast<int16_t>(latDeltaSw / _cellSizeLat);
+    const int16_t lonIndex = static_cast<int16_t>(lonDeltaSw / _cellSizeLon);
 
     const bool latIndexInvalid = latIndex < 0 || latIndex > (_tileInfo.gridSizeLat - 1);
     const bool lonIndexInvalid = lonIndex < 0 || lonIndex > (_tileInfo.gridSizeLon - 1);
