@@ -434,6 +434,7 @@ HEADERS += \
     src/QmlControls/CustomAction.h \
     src/QmlControls/CustomActionManager.h \
     src/QmlControls/QmlUnitsConversion.h \
+    src/Terrain/AP_SRTM_Grid.h \
     src/Terrain/TerrainQueryAirMap.h \
     src/Terrain/TerrainQueryInterface.h \
     src/Terrain/TerrainQueryTest.h \
