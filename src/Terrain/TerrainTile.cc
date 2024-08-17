@@ -54,8 +54,8 @@ TerrainTile::TerrainTile(const AP_SRTM_Grid::Block& block)
     const auto oneCellEast =  QGeoCoordinate{ _tileInfo.swLat               , _tileInfo.swLon + _cellSizeLon };
     const auto oneCellNorth = QGeoCoordinate{ _tileInfo.swLat + _cellSizeLat, _tileInfo.swLon                };
 
-    qCDebug(TerrainTileLog) << this << "distance cell N size expect 100, got" << swCorner.distanceTo(oneCellNorth);
-    qCDebug(TerrainTileLog) << this << "distance cell E size expect 100, got" << swCorner.distanceTo(oneCellEast);
+    qCDebug(TerrainTileLog) << this << "distance to one cell N: expect 30 or 100, got" << swCorner.distanceTo(oneCellNorth);
+    qCDebug(TerrainTileLog) << this << "distance to one cell E: expect 30 or 100, got" << swCorner.distanceTo(oneCellEast);
 #endif // defined(QT_DEBUG)
 
     _tileInfo.minElevation = INT16_MAX;

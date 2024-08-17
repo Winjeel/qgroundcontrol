@@ -19,6 +19,10 @@
 
 QGC_LOGGING_CATEGORY(TerrainQuerySRTMLog, "TerrainQuerySRTMLog")
 
+// We need a typedef here because the comma in the QHash breaks the Q_GLOBAL_STATIC #define
+typedef QHash<QString, uint16_t> SpacingCache;
+Q_GLOBAL_STATIC(SpacingCache, sSpacingCache)
+
 TerrainQuerySRTM::TerrainQuerySRTM(QObject* parent)
     : TerrainQueryInterface(parent)
 {
@@ -54,14 +58,6 @@ void TerrainQuerySRTM::fetchTerrainHeight(const QGeoCoordinate& coordinate)
     // CRC check
     if (_getBlockCrc(block) != block.crc) {
         qCWarning(TerrainQuerySRTMLog) << "fetch(): bad initial CRC";
-        emit fetchFailed();
-        return;
-    }
-
-    // TODO: Support multiple spacings. Will need to work out how to do hash...
-    if (block.spacing != 100) {
-        qCWarning(TerrainQuerySRTMLog) << "fetch(): bad block spacing";
-        srtmFile.close();
         emit fetchFailed();
         return;
     }
@@ -104,6 +100,7 @@ void TerrainQuerySRTM::fetchTerrainHeight(const QGeoCoordinate& coordinate)
 
     // Generate TerrainTile
     TerrainTile tile = TerrainTile(block);
+    sSpacingCache->insert(filename, block.spacing);
     const QString hash = _getTileHash(filename, gridOffset);
 
     emit fetchComplete(tile, hash);
@@ -151,7 +148,10 @@ void TerrainQuerySRTM::requestCarpetHeights(const QGeoCoordinate& swCoord, const
 QString TerrainQuerySRTM::getTileHash(const QGeoCoordinate& coordinate) const
 {
     const auto filename = _calcFilename(coordinate);
-    const auto gridOffset = _calcGridOffset(coordinate, 100);
+    // Unless we've read an SRTM file, assume it is SRTM3 data with 100m spacing.
+    const uint16_t kDefaultSpacing = 100;
+    const auto spacing = sSpacingCache->value(filename, kDefaultSpacing);
+    const auto gridOffset = _calcGridOffset(coordinate, spacing);
 
     const QString ret = _getTileHash(filename, gridOffset);
     qCDebug(TerrainQuerySRTMLog) << "Computing unique tile hash for" << coordinate << "=>" << ret;
