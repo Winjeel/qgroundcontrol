@@ -52,6 +52,8 @@ public:
     using QThread::usleep;
 };
 
+quint16 crc16_ccitt(const quint8 *buf, const quint32 len, quint16 crc);
+
 quint32 crc32(const quint8 *src, unsigned len, unsigned state);
 
 }
