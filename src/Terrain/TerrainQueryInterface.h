@@ -49,9 +49,20 @@ public:
 
     virtual QString getTileHash(const QGeoCoordinate& coordinate) const = 0;
 
+    enum class FetchError {
+        InvalidDataType,
+        NetworkError,
+        EmptyResponse,
+        FileNotFound,
+        FileRead,
+        CRC,
+        UnexpectedData,
+    };
+    Q_ENUM(FetchError);
+
 signals:
     void fetchComplete(TerrainTile tile, QString hash);
-    void fetchFailed(void);
+    void fetchFailed(FetchError error);
 
     void coordinateHeightsReceived(bool success, QList<double> heights);
     void pathHeightsReceived(bool success, double distanceBetween, double finalDistanceBetween, const QList<double>& heights);

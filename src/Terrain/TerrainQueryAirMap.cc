@@ -54,7 +54,7 @@ void TerrainQueryAirMap::_fetchDone(QByteArray responseBytes, QNetworkReply::Net
 
     if (!reply) {
         qCWarning(TerrainQueryAirMapLog) << "Elevation tile fetched but invalid reply data type.";
-        emit fetchFailed();
+        emit fetchFailed(FetchError::InvalidDataType);
         return;
     }
 
@@ -65,13 +65,13 @@ void TerrainQueryAirMap::_fetchDone(QByteArray responseBytes, QNetworkReply::Net
     // handle potential errors
     if (error != QNetworkReply::NoError) {
         qCWarning(TerrainQueryAirMapLog) << "Elevation tile fetching returned error (" << error << ")";
-        emit fetchFailed();
+        emit fetchFailed(FetchError::NetworkError);
         reply->deleteLater();
         return;
     }
     if (responseBytes.isEmpty()) {
         qCWarning(TerrainQueryAirMapLog) << "Error in fetching elevation tile. Empty response.";
-        emit fetchFailed();
+        emit fetchFailed(FetchError::EmptyResponse);
         reply->deleteLater();
         return;
     }

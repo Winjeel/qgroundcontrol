@@ -37,7 +37,7 @@ void TerrainQuerySRTM::fetchTerrainHeight(const QGeoCoordinate& coordinate)
     QFile srtmFile(terrainDir.absoluteFilePath(filename));
     if (!srtmFile.exists()) {
         qCWarning(TerrainQuerySRTMLog) << "fetch(): SRTM file not found! " << srtmFile;
-        emit fetchFailed();
+        emit fetchFailed(FetchError::FileNotFound);
         return;
     }
 
@@ -50,14 +50,14 @@ void TerrainQuerySRTM::fetchTerrainHeight(const QGeoCoordinate& coordinate)
     if (bytesRead != sizeof(block)) {
         qCWarning(TerrainQuerySRTMLog) << "fetch(): bad block initial read";
         srtmFile.close();
-        emit fetchFailed();
+        emit fetchFailed(FetchError::FileRead);
         return;
     }
 
     // CRC check
     if (_getBlockCrc(block) != block.crc) {
         qCWarning(TerrainQuerySRTMLog) << "fetch(): bad initial CRC";
-        emit fetchFailed();
+        emit fetchFailed(FetchError::CRC);
         return;
     }
 
@@ -68,7 +68,7 @@ void TerrainQuerySRTM::fetchTerrainHeight(const QGeoCoordinate& coordinate)
     if (seekError) {
         qCWarning(TerrainQuerySRTMLog) << "fetch(): bad block seek";
         srtmFile.close();
-        emit fetchFailed();
+        emit fetchFailed(FetchError::FileRead);
         return;
     }
 
@@ -77,21 +77,21 @@ void TerrainQuerySRTM::fetchTerrainHeight(const QGeoCoordinate& coordinate)
     srtmFile.close();
     if (bytesRead != sizeof(block)) {
         qCWarning(TerrainQuerySRTMLog) << "fetch(): bad block read";
-        emit fetchFailed();
+        emit fetchFailed(FetchError::FileRead);
         return;
     }
 
     // CRC check
     if (_getBlockCrc(block) != block.crc) {
         qCWarning(TerrainQuerySRTMLog) << "fetch(): bad CRC";
-        emit fetchFailed();
+        emit fetchFailed(FetchError::CRC);
         return;
     }
 
     const bool gotExpectedBlock = (block.grid_idx_x == gridOffset.x) && (block.grid_idx_y == gridOffset.y);
     if (!gotExpectedBlock) {
         qCWarning(TerrainQuerySRTMLog) << "fetch(): bad block index";
-        emit fetchFailed();
+        emit fetchFailed(FetchError::UnexpectedData);
         return;
     }
 
