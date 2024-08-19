@@ -438,8 +438,8 @@ HEADERS += \
     src/Terrain/TerrainQueryAirMap.h \
     src/Terrain/TerrainQueryInterface.h \
     src/Terrain/TerrainQuerySRTM.h \
-    src/Terrain/TerrainQueryTest.h \
     src/Terrain/TerrainTileManager.h \
+    src/Terrain/UnitTestTerrainQuery.h \
     src/Vehicle/VehicleEscStatusFactGroup.h \
     src/api/QGCCorePlugin.h \
     src/api/QGCOptions.h \
@@ -456,8 +456,8 @@ SOURCES += \
     src/QmlControls/CustomActionManager.cc \
     src/Terrain/TerrainQueryAirMap.cc \
     src/Terrain/TerrainQuerySRTM.cc \
-    src/Terrain/TerrainQueryTest.cc \
     src/Terrain/TerrainTileManager.cc \
+    src/Terrain/UnitTestTerrainQuery.cc \
     src/Vehicle/VehicleEscStatusFactGroup.cc \
     src/api/QGCCorePlugin.cc \
     src/api/QGCOptions.cc \

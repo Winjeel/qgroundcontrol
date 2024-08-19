@@ -12,7 +12,7 @@
 #include "TerrainQuery.h"
 #include "TerrainQueryAirMap.h"
 #include "TerrainQuerySRTM.h"
-#include "TerrainQueryTest.h"
+#include "UnitTestTerrainQuery.h"
 
 #include "QGCApplication.h"
 #include "SettingsManager.h"

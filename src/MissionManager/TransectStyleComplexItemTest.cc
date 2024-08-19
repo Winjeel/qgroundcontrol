@@ -8,7 +8,7 @@
  ****************************************************************************/
 
 #include "TransectStyleComplexItemTest.h"
-#include "TerrainQueryTest.h"
+#include "UnitTestTerrainQuery.h"
 #include "QGCApplication.h"
 #include "QGroundControlQmlGlobal.h"
 

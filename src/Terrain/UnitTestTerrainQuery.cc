@@ -7,7 +7,7 @@
  *
  ****************************************************************************/
 
-#include "TerrainQueryTest.h"
+#include "UnitTestTerrainQuery.h"
 #include "TerrainTileManager.h"
 
 #include <cmath>
