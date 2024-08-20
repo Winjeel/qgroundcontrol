@@ -51,6 +51,7 @@
 #include "VehicleLinkManagerTest.h"
 #include "LandingComplexItemTest.h"
 #include "InitialConnectTest.h"
+#include "TerrainQueryTest.h"
 
 UT_REGISTER_TEST(ComponentInformationCacheTest)
 UT_REGISTER_TEST(ComponentInformationTranslationTest)
@@ -88,6 +89,7 @@ UT_REGISTER_TEST(QGCMapPolylineTest)
 UT_REGISTER_TEST(CameraCalcTest)
 UT_REGISTER_TEST(FWLandingPatternTest)
 UT_REGISTER_TEST(LandingComplexItemTest)
+UT_REGISTER_TEST(TerrainQueryTest)
 
 UT_REGISTER_TEST_STANDALONE(MissionCommandTreeEditorTest)
 

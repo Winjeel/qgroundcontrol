@@ -33,7 +33,14 @@ void TerrainQuerySRTM::fetchTerrainHeight(const QGeoCoordinate& coordinate)
     qCDebug(TerrainQuerySRTMLog) << "fetch():" << coordinate;
 
     const auto filename = _calcFilename(coordinate);
-    QDir terrainDir(qgcApp()->toolbox()->settingsManager()->appSettings()->terrainSavePath());
+
+    QDir terrainDir;
+    if (qgcApp()->runningUnitTests()) {
+        terrainDir = QDir(":/unittest/Terrain");
+    } else {
+        terrainDir = QDir(qgcApp()->toolbox()->settingsManager()->appSettings()->terrainSavePath());
+    }
+
     QFile srtmFile(terrainDir.absoluteFilePath(filename));
     if (!srtmFile.exists()) {
         qCWarning(TerrainQuerySRTMLog) << "fetch(): SRTM file not found! " << srtmFile;
@@ -44,6 +51,14 @@ void TerrainQuerySRTM::fetchTerrainHeight(const QGeoCoordinate& coordinate)
     AP_SRTM_Grid::Block block;
 
     srtmFile.open(QIODevice::ReadOnly);
+
+    const uint64_t fileSize = srtmFile.size();
+    if (fileSize < sizeof(block)) {
+        qCWarning(TerrainQuerySRTMLog) << "fetch(): bad file size";
+        srtmFile.close();
+        emit fetchFailed(FetchError::FileRead);
+        return;
+    }
 
     // Read the first block to get the spacing
     auto bytesRead = srtmFile.read((char *)&block, sizeof(block));
@@ -64,28 +79,38 @@ void TerrainQuerySRTM::fetchTerrainHeight(const QGeoCoordinate& coordinate)
     const auto gridOffset = _calcGridOffset(coordinate, block.spacing);
     const auto fileOffset = _calcFileOffset(gridOffset);
 
-    const bool seekError = fileOffset && !srtmFile.seek(fileOffset);
-    if (seekError) {
-        qCWarning(TerrainQuerySRTMLog) << "fetch(): bad block seek";
+    if (fileOffset > (fileSize - sizeof(block))) {
+        qCWarning(TerrainQuerySRTMLog) << "fetch(): bad file offset";
         srtmFile.close();
         emit fetchFailed(FetchError::FileRead);
         return;
     }
 
-    // Read the desired block
-    bytesRead = srtmFile.read((char *)&block, sizeof(block));
-    srtmFile.close();
-    if (bytesRead != sizeof(block)) {
-        qCWarning(TerrainQuerySRTMLog) << "fetch(): bad block read";
-        emit fetchFailed(FetchError::FileRead);
-        return;
-    }
+    // Check if we need another block, otherwise the current block already has the coordinate we want
+    if (fileOffset) {
+        // Seek to the desired block
+        if (!srtmFile.seek(fileOffset)) {
+            qCWarning(TerrainQuerySRTMLog) << "fetch(): bad block seek";
+            srtmFile.close();
+            emit fetchFailed(FetchError::FileRead);
+            return;
+        }
 
-    // CRC check
-    if (_getBlockCrc(block) != block.crc) {
-        qCWarning(TerrainQuerySRTMLog) << "fetch(): bad CRC";
-        emit fetchFailed(FetchError::CRC);
-        return;
+        // Read the desired block
+        bytesRead = srtmFile.read((char *)&block, sizeof(block));
+        srtmFile.close();
+        if (bytesRead != sizeof(block)) {
+            qCWarning(TerrainQuerySRTMLog) << "fetch(): bad block read";
+            emit fetchFailed(FetchError::FileRead);
+            return;
+        }
+
+        // CRC check
+        if (_getBlockCrc(block) != block.crc) {
+            qCWarning(TerrainQuerySRTMLog) << "fetch(): bad CRC";
+            emit fetchFailed(FetchError::CRC);
+            return;
+        }
     }
 
     const bool gotExpectedBlock = (block.grid_idx_x == gridOffset.x) && (block.grid_idx_y == gridOffset.y);
@@ -168,7 +193,11 @@ TerrainQuerySRTM::GridOffset TerrainQuerySRTM::_calcGridOffset(const QGeoCoordin
 
     // Calculate the offset of the desired grid
     const auto distance_gridunits = swCorner.distanceTo(coordinate) / spacing;
-    const auto azimuth_rad = qDegreesToRadians(swCorner.azimuthTo(coordinate));
+    // This calculates the azimuth of the great circle between two points using a spherical earth
+    // model. As such, as we move north/south (latitude), we get increasing error for points with the
+    // same latitude but different longitude. As such, we clamp to between 0 and 90 degrees.
+    const auto azimuth_deg = std::clamp(swCorner.azimuthTo(coordinate), 0.0, 90.0);
+    const auto azimuth_rad = qDegreesToRadians(azimuth_deg);
 
     const uint16_t x = qFloor((distance_gridunits * cos(azimuth_rad)) / AP_SRTM_Grid::BLOCK_SPACING_X);
     const uint16_t y = qFloor((distance_gridunits * sin(azimuth_rad)) / AP_SRTM_Grid::BLOCK_SPACING_Y);
