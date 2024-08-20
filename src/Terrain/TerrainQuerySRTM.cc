@@ -121,8 +121,6 @@ void TerrainQuerySRTM::fetchTerrainHeight(const QGeoCoordinate& coordinate)
         return;
     }
 
-    // TODO: bitmap check
-
     // Generate TerrainTile
     TerrainTile tile = TerrainTile(block);
     sSpacingCache->insert(filename, block.spacing);

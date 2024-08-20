@@ -66,21 +66,35 @@ TerrainTile::TerrainTile(const AP_SRTM_Grid::Block& block)
     double accum = 0.0;
     uint32_t count = 0;
 
+    if (block.bitmap == 0) {
+        qCWarning(TerrainTileLog) << this << "No valid SRTM heights (block.bitmap == 0)";
+        _isValid = false;
+        return;
+    }
+
     _elevationData.reserve(AP_SRTM_Grid::BLOCK_SIZE_X);
-    for (size_t i = 0; i < AP_SRTM_Grid::BLOCK_SIZE_X; i++) {
+    for (size_t x = 0; x < AP_SRTM_Grid::BLOCK_SIZE_X; x++) {
         QList inner = QList<int16_t>();
         inner.reserve(AP_SRTM_Grid::BLOCK_SIZE_Y);
-        for (size_t j = 0; j < AP_SRTM_Grid::BLOCK_SIZE_Y; j++) {
-            const auto height = block.height[i][j];
-            inner.append(height);
+        for (size_t y = 0; y < AP_SRTM_Grid::BLOCK_SIZE_Y; y++) {
+            const bool haveHeight = AP_SRTM_Grid::checkBitmap(x, y, block.bitmap);
+            if (Q_LIKELY(haveHeight)) {
+                const auto height = block.height[x][y];
+                inner.append(height);
 
-            _tileInfo.minElevation = qMin(_tileInfo.minElevation, height);
-            _tileInfo.maxElevation = qMax(_tileInfo.maxElevation, height);
-            accum += height;
-            count++;
+                _tileInfo.minElevation = qMin(_tileInfo.minElevation, height);
+                _tileInfo.maxElevation = qMax(_tileInfo.maxElevation, height);
+                accum += height;
+                count++;
+            } else {
+                qCWarning(TerrainTileLog) << this << "Missing SRTM height for x:y" << x << y;
+                inner.append(qQNaN());
+            }
         }
         _elevationData.append(inner);
     }
+
+    // SAFETY: We return early if the block bitmap is zero, so count is guaranteed to be non-zero.
     _tileInfo.avgElevation = (accum / count);
     qCDebug(TerrainTileLog) << this << "SRTM heights min:avg:max" << _tileInfo.minElevation << _tileInfo.avgElevation << _tileInfo.maxElevation;
 
