@@ -14,6 +14,14 @@
     "shortDesc": "Currently selected map type for flight maps",
     "type":             "string",
     "default":     "Hybrid"
+},
+{
+    "name":         "elevationProvider",
+    "shortDesc":    "Elevation Provider",
+    "type":         "uint8",
+    "enumStrings":  "AirMap,Local (SRTM)",
+    "enumValues":   "0,1",
+    "default":      0
 }
 ]
 }

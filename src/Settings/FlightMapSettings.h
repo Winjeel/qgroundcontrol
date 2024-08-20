@@ -18,9 +18,15 @@ class FlightMapSettings : public SettingsGroup
 public:
     FlightMapSettings(QObject* parent = nullptr);
 
+    enum class ElevationProvider {
+        AirMap = 0,
+        LocalSRTM,
+    };
+    Q_ENUM(ElevationProvider);
 
     DEFINE_SETTING_NAME_GROUP()
     DEFINE_SETTINGFACT(mapProvider)
     DEFINE_SETTINGFACT(mapType)
+    DEFINE_SETTINGFACT(elevationProvider)
 
 };
