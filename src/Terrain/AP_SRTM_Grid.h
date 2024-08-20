@@ -92,4 +92,9 @@ namespace AP_SRTM_Grid {
     ) BlockIO;
     static_assert(sizeof(BlockIO) == 2048);
 
+    /*
+      Returns true if the given x/y is available (set in the bitmap)
+     */
+    bool checkBitmap(const uint8_t x, const uint8_t y, const uint64_t bitmap);
+
 };

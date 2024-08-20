@@ -456,6 +456,7 @@ contains (DEFINES, QGC_ENABLE_PAIRING) {
 SOURCES += \
     src/QmlControls/CustomActionManager.cc \
     src/Terrain/AP_Location.cc \
+    src/Terrain/AP_SRTM_Grid.cc \
     src/Terrain/TerrainQueryAirMap.cc \
     src/Terrain/TerrainQuerySRTM.cc \
     src/Terrain/TerrainTileManager.cc \
