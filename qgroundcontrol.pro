@@ -434,6 +434,7 @@ HEADERS += \
     src/QmlControls/CustomAction.h \
     src/QmlControls/CustomActionManager.h \
     src/QmlControls/QmlUnitsConversion.h \
+    src/Terrain/AP_Location.h \
     src/Terrain/AP_SRTM_Grid.h \
     src/Terrain/TerrainQueryAirMap.h \
     src/Terrain/TerrainQueryInterface.h \
@@ -454,6 +455,7 @@ contains (DEFINES, QGC_ENABLE_PAIRING) {
 
 SOURCES += \
     src/QmlControls/CustomActionManager.cc \
+    src/Terrain/AP_Location.cc \
     src/Terrain/TerrainQueryAirMap.cc \
     src/Terrain/TerrainQuerySRTM.cc \
     src/Terrain/TerrainTileManager.cc \
