@@ -23,6 +23,8 @@ Q_DECLARE_LOGGING_CATEGORY(TerrainQuerySRTMLog)
 class TerrainQuerySRTM : public TerrainQueryInterface {
     Q_OBJECT
 
+    friend class TerrainQueryTest;
+
 public:
     TerrainQuerySRTM(QObject* parent = nullptr);
 

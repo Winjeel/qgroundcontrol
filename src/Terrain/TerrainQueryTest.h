@@ -34,6 +34,8 @@ private slots:
     // Disable until I can get SSL working again with Qt v5.15 on Ubuntu 22.04
     // void _testAirmapQuery(void) { auto q = TerrainQueryAirMap(this); _testQuery(q, 10); }
 
+    void _testSRTMGridOffset(void);
+
     void _tileFetchFailed(TerrainQueryInterface::FetchError error);
     void _tileFetchComplete(TerrainTile tile, QString hash);
 
