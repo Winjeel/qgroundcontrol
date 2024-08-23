@@ -10,6 +10,7 @@
 #include "TerrainQuerySRTM.h"
 #include "TerrainTileManager.h"
 
+#include "AP_Location.h"
 #include "AppSettings.h"
 #include "QGCApplication.h"
 #include "QGCLoggingCategory.h"
@@ -182,34 +183,38 @@ QString TerrainQuerySRTM::_calcFilename(const QGeoCoordinate& coordinate)
 
 TerrainQuerySRTM::GridOffset TerrainQuerySRTM::_calcGridOffset(const QGeoCoordinate& coordinate, uint16_t spacing)
 {
-    const auto latitude = coordinate.latitude();
-    const auto longitude = coordinate.longitude();
+    const double latitude = coordinate.latitude();
+    const double longitude = coordinate.longitude();
 
-    // Calculate corners
-    const auto swCorner = QGeoCoordinate(qFloor(latitude), qFloor(longitude));
-    const auto east_overlap = 2 * spacing * AP_SRTM_Grid::BLOCK_SIZE_Y;
-    const auto seCorner = QGeoCoordinate(qFloor(latitude), qFloor(longitude + 1))
-                              .atDistanceAndAzimuth(east_overlap, 90.0);
+    const double swLatitude = qFloor(latitude);
+    const double swLongitude = qFloor(longitude);
 
-    // Calculate the offset of the desired grid
-    const auto distance_gridunits = swCorner.distanceTo(coordinate) / spacing;
-    // This calculates the azimuth of the great circle between two points using a spherical earth
-    // model. As such, as we move north/south (latitude), we get increasing error for points with the
-    // same latitude but different longitude. As such, we clamp to between 0 and 90 degrees.
-    const auto azimuth_deg = std::clamp(swCorner.azimuthTo(coordinate), 0.0, 90.0);
-    const auto azimuth_rad = qDegreesToRadians(azimuth_deg);
-
-    const uint16_t x = qFloor((distance_gridunits * cos(azimuth_rad)) / AP_SRTM_Grid::BLOCK_SPACING_X);
-    const uint16_t y = qFloor((distance_gridunits * sin(azimuth_rad)) / AP_SRTM_Grid::BLOCK_SPACING_Y);
+    // Note: we have to use the ArduPilot location functions that were used to generate the terrain
+    // files, as the Qt functions use different algorithms which results in incorrect offsets.
 
     // Calculate number of east-west blocks
-    const auto grid_width_gridunits = swCorner.distanceTo(seCorner) / spacing;
-    const int32_t numEastBlocks = qFloor(grid_width_gridunits / AP_SRTM_Grid::BLOCK_SPACING_Y);
+    //
+    // Each grid overlaps it's neighbours by two blocks.
+    const double eastOverlap = 2 * spacing * AP_SRTM_Grid::BLOCK_SIZE_Y;
+    const auto swLoc = AP::Location { swLatitude, swLongitude     };
+    auto seLoc =       AP::Location { swLatitude, swLongitude + 1 };
+    seLoc.offset(0, eastOverlap);
+
+    const auto seOffset = swLoc.get_distance_NE(seLoc);
+    const int32_t numEastBlocks = qFloor(seOffset.y / spacing / AP_SRTM_Grid::BLOCK_SPACING_Y);
+
+    // Calculate the offset into the tile of the requested coordinate.
+    //
+    const auto coordLoc = AP::Location { latitude, longitude };
+    const auto coordOffset = swLoc.get_distance_NE(coordLoc);
+
+    const uint16_t x = coordOffset.x / spacing / AP_SRTM_Grid::BLOCK_SPACING_X;
+    const uint16_t y = coordOffset.y / spacing / AP_SRTM_Grid::BLOCK_SPACING_Y;
 
     return GridOffset{ x, y, numEastBlocks, };
 }
 
-// Calculate the offset into the file of the desired block
+// Calculate the byte offset into the file of the desired block
 uint64_t TerrainQuerySRTM::_calcFileOffset(const GridOffset& gridOffset)
 {
     const uint64_t numGrids = (gridOffset.numEastBlocks * gridOffset.x) + gridOffset.y;

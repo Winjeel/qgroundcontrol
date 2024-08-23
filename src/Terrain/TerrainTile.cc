@@ -8,6 +8,8 @@
  ****************************************************************************/
 
 #include "TerrainTile.h"
+
+#include "AP_Location.h"
 #include "JsonHelper.h"
 #include "QGCMapEngine.h"
 #include "QGC.h"
@@ -36,26 +38,27 @@ TerrainTile::TerrainTile(const AP_SRTM_Grid::Block& block)
     _tileInfo.gridSizeLat = AP_SRTM_Grid::BLOCK_SIZE_X;
     _tileInfo.gridSizeLon = AP_SRTM_Grid::BLOCK_SIZE_Y;
 
-    const auto swCorner = QGeoCoordinate(block.lat / 1e7, block.lon / 1e7);
-    const auto north_overlap =  block.spacing * AP_SRTM_Grid::BLOCK_SIZE_X;
-    const auto east_overlap =   block.spacing * AP_SRTM_Grid::BLOCK_SIZE_Y;
-    const auto neCorner = swCorner.atDistanceAndAzimuth(north_overlap, 0.0)
-                                  .atDistanceAndAzimuth(east_overlap, 90.0);
+    const auto northSize = block.spacing * AP_SRTM_Grid::BLOCK_SIZE_X;
+    const auto eastSize =  block.spacing * AP_SRTM_Grid::BLOCK_SIZE_Y;
 
-    _tileInfo.swLat = swCorner.latitude();
-    _tileInfo.swLon = swCorner.longitude();
-    _tileInfo.neLat = neCorner.latitude();
-    _tileInfo.neLon = neCorner.longitude();
+    const auto swCorner = AP::Location { block.lat, block.lon };
+    auto neCorner = swCorner;
+    neCorner.offset(northSize, eastSize);
+
+    _tileInfo.swLat = swCorner.lat() * AP::Location::COORD_INT32_TO_DOUBLE;
+    _tileInfo.swLon = swCorner.lon() * AP::Location::COORD_INT32_TO_DOUBLE;
+    _tileInfo.neLat = neCorner.lat() * AP::Location::COORD_INT32_TO_DOUBLE;
+    _tileInfo.neLon = neCorner.lon() * AP::Location::COORD_INT32_TO_DOUBLE;
 
     _cellSizeLat = (_tileInfo.neLat - _tileInfo.swLat) / _tileInfo.gridSizeLat;
     _cellSizeLon = (_tileInfo.neLon - _tileInfo.swLon) / _tileInfo.gridSizeLon;
 
 #if defined(QT_DEBUG)
-    const auto oneCellEast =  QGeoCoordinate{ _tileInfo.swLat               , _tileInfo.swLon + _cellSizeLon };
-    const auto oneCellNorth = QGeoCoordinate{ _tileInfo.swLat + _cellSizeLat, _tileInfo.swLon                };
+    const auto oneCellNorthEast = AP::Location{ _tileInfo.swLat + _cellSizeLat, _tileInfo.swLon + _cellSizeLon };
+    const auto oneCellOffset = swCorner.get_distance_NE(oneCellNorthEast);
 
-    qCDebug(TerrainTileLog) << this << "distance to one cell N: expect 30 or 100, got" << swCorner.distanceTo(oneCellNorth);
-    qCDebug(TerrainTileLog) << this << "distance to one cell E: expect 30 or 100, got" << swCorner.distanceTo(oneCellEast);
+    qCDebug(TerrainTileLog) << this << "distance to one cell N: expect 30 or 100, got" << oneCellOffset.x;
+    qCDebug(TerrainTileLog) << this << "distance to one cell E: expect 30 or 100, got" << oneCellOffset.y;
 #endif // defined(QT_DEBUG)
 
     _tileInfo.minElevation = INT16_MAX;
