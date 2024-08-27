@@ -9,7 +9,7 @@
 
 #include "TerrainAirmapQuery.h"
 #include "TerrainTileManager.h"
-#include "TerrainQuery.h" // for UnitTestTerrainQuery
+#include "TerrainQueryTest.h"
 
 #include "QGCApplication.h"
 #include "QGCFileDownload.h"
