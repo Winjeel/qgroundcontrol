@@ -61,7 +61,7 @@ public:
     Q_ENUM(FetchError);
 
 signals:
-    void fetchComplete(TerrainTile tile, QString hash);
+    void fetchComplete(TerrainTile* tile, QString hash);
     void fetchFailed(FetchError error);
 
     void coordinateHeightsReceived(bool success, QList<double> heights);

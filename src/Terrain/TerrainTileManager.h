@@ -40,7 +40,7 @@ public:
     static QList<QGeoCoordinate> pathQueryToCoords(const QGeoCoordinate& fromCoord, const QGeoCoordinate& toCoord, double& distanceBetween, double& finalDistanceBetween);
 
 public slots:
-    void tileFetchComplete(TerrainTile tile, QString hash);
+    void tileFetchComplete(TerrainTile* tile, QString hash);
     void tileFetchFailed(void);
 
 private:
@@ -72,5 +72,5 @@ private:
     QNetworkAccessManager       _networkManager;
 
     QMutex                      _tilesMutex;
-    QHash<QString, TerrainTile> _tiles;
+    QHash<QString, TerrainTile*> _tiles;
 };

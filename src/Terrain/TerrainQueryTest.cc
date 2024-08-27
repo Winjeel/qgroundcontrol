@@ -118,8 +118,8 @@ void TerrainQueryTest::_tileFetchFailed(TerrainQueryInterface::FetchError error)
     _haveTerrainTile = false;
 }
 
-void TerrainQueryTest::_tileFetchComplete(TerrainTile tile, QString hash)
+void TerrainQueryTest::_tileFetchComplete(TerrainTile* tile, QString hash)
 {
     _haveTerrainTile = true;
-    _terrainTile = tile;
+    _terrainTile = *tile;
 }

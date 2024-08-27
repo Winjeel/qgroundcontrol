@@ -78,7 +78,7 @@ void TerrainQueryAirMap::_fetchDone(QByteArray responseBytes, QNetworkReply::Net
 
     qCDebug(TerrainQueryAirMapLog) << "Received some bytes of terrain data: " << responseBytes.size();
 
-    TerrainTile terrainTile = TerrainTile(responseBytes);
+    TerrainTile* terrainTile = new TerrainTile(responseBytes);
     emit fetchComplete(terrainTile, hash);
     reply->deleteLater();
 }

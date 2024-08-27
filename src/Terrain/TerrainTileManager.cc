@@ -152,7 +152,7 @@ bool TerrainTileManager::getAltitudesForCoordinates(const QList<QGeoCoordinate>&
 
         _tilesMutex.lock();
         if (_tiles.contains(tileHash)) {
-            double elevation = _tiles[tileHash].elevation(coordinate);
+            double elevation = _tiles[tileHash]->elevation(coordinate);
             if (qIsNaN(elevation)) {
                 error = true;
                 qCWarning(TerrainTileManagerLog) << "TerrainTileManager::getAltitudesForCoordinates Internal Error: missing elevation in tile cache";
@@ -202,7 +202,7 @@ void TerrainTileManager::tileFetchFailed(void)
     _requestQueue.clear();
 }
 
-void TerrainTileManager::tileFetchComplete(TerrainTile tile, QString hash)
+void TerrainTileManager::tileFetchComplete(TerrainTile* tile, QString hash)
 {
     TerrainQueryInterface* reply = qobject_cast<TerrainQueryInterface*>(QObject::sender());
     _state = State::Idle;
@@ -213,7 +213,7 @@ void TerrainTileManager::tileFetchComplete(TerrainTile tile, QString hash)
         qCWarning(TerrainTileManagerLog) << "Elevation tile fetched but invalid reply data type.";
     }
 
-    if (tile.isValid()) {
+    if (tile->isValid()) {
         _tilesMutex.lock();
         if (!_tiles.contains(hash)) {
             _tiles.insert(hash, tile);

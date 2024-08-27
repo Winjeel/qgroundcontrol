@@ -122,7 +122,7 @@ void TerrainQuerySRTM::fetchTerrainHeight(const QGeoCoordinate& coordinate)
     }
 
     // Generate TerrainTile
-    TerrainTile tile = TerrainTile(block);
+    TerrainTile* tile = new TerrainTile(block);
     sSpacingCache->insert(filename, block.spacing);
     const QString hash = _getTileHash(filename, gridOffset);
 

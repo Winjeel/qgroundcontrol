@@ -37,7 +37,7 @@ private slots:
     void _testSRTMGridOffset(void);
 
     void _tileFetchFailed(TerrainQueryInterface::FetchError error);
-    void _tileFetchComplete(TerrainTile tile, QString hash);
+    void _tileFetchComplete(TerrainTile* tile, QString hash);
 
 private:
     bool        _haveTerrainTile;

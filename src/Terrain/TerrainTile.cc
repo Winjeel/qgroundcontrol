@@ -72,15 +72,14 @@ TerrainTile::TerrainTile(const AP_SRTM_Grid::Block& block)
         return;
     }
 
-    _elevationData.reserve(AP_SRTM_Grid::BLOCK_SIZE_X);
-    for (size_t x = 0; x < AP_SRTM_Grid::BLOCK_SIZE_X; x++) {
-        QList inner = QList<int16_t>();
-        inner.reserve(AP_SRTM_Grid::BLOCK_SIZE_Y);
-        for (size_t y = 0; y < AP_SRTM_Grid::BLOCK_SIZE_Y; y++) {
+    _data = new int16_t*[_tileInfo.gridSizeLat];
+    for (int16_t x = 0; x < _tileInfo.gridSizeLat; x++) {
+        _data[x] = new int16_t[_tileInfo.gridSizeLon];
+        for (int16_t y = 0; y < _tileInfo.gridSizeLon; y++) {
             const bool haveHeight = AP_SRTM_Grid::checkBitmap(x, y, block.bitmap);
             if (Q_LIKELY(haveHeight)) {
                 const auto height = block.height[x][y];
-                inner.append(height);
+                _data[x][y] = height;
 
                 _tileInfo.minElevation = qMin(_tileInfo.minElevation, height);
                 _tileInfo.maxElevation = qMax(_tileInfo.maxElevation, height);
@@ -88,10 +87,9 @@ TerrainTile::TerrainTile(const AP_SRTM_Grid::Block& block)
                 count++;
             } else {
                 qCWarning(TerrainTileLog) << this << "Missing SRTM height for x:y" << x << y;
-                inner.append(qQNaN());
+                _data[x][y] = INT16_MIN;
             }
         }
-        _elevationData.append(inner);
     }
 
     // SAFETY: We return early if the block bitmap is zero, so count is guaranteed to be non-zero.
